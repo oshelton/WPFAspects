@@ -62,6 +62,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Utils\PropertyGetter.cs" />
     <Compile Include="Validation\Rules\Rule.cs" />
     <Compile Include="Validation\Validator.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -76,7 +77,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Converters\" />
-    <Folder Include="Utils\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
