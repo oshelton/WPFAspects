@@ -10,12 +10,13 @@ namespace WPFAspects.Utils
     ///Class for retrieving property information for a particular type.
     ///The framework itself seems to do some caching with regards to this stuff so I am not going to try to outdo it.
     ///<remarks>
+    ///Only returns public instance properties by default.
     ///Reflection is costly, don't use it if you have a choice.
     ///</remarks>
     public static class PropertyGetter
     {
         ///Get all properties of an object matching the passed in binding flags.
-        public static IEnumerable<PropertyInfo> GetProperties(this object obj, BindingFlags flags = BindingFlags.Default)
+        public static IEnumerable<PropertyInfo> GetProperties(this object obj, BindingFlags flags = BindingFlags.Public | BindingFlags.Instance)
         {
             return obj.GetType().GetProperties(flags);
         }
