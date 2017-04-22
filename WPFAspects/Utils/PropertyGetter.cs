@@ -22,15 +22,15 @@ namespace WPFAspects.Utils
         }
 
         ///Get the value of a specific property of an object.
-        public static T GetPropertyValue<T>(this object obj, string propertyName)
+        public static T GetPropertyValue<T>(this object obj, string propertyName, BindingFlags flags = BindingFlags.Public | BindingFlags.Instance)
         {
-            return (T)obj.GetType().GetProperty(propertyName).GetValue(obj);
+            return (T)obj.GetType().GetProperty(propertyName, flags).GetValue(obj);
         }
 
         ///Set the value of a specific property of an object.
-        public static void SetPropertyValue<T>(this object obj, string propertyName, T value)
+        public static void SetPropertyValue<T>(this object obj, string propertyName, T value, BindingFlags flags = BindingFlags.Public | BindingFlags.Instance)
         {
-            obj.GetType().GetProperty(propertyName).SetValue(obj, value);
+            obj.GetType().GetProperty(propertyName, flags).SetValue(obj, value);
         }
     }
 }
