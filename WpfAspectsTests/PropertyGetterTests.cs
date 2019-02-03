@@ -56,6 +56,11 @@ namespace UtilTests
         {
             var testObject = new TestObject();
 
+            testObject.SetPropertyValue(nameof(TestObject.VarOne), 2);
+            Assert.AreEqual(2, testObject.VarOne);
+            testObject.SetPropertyValue(nameof(testObject.VarTwo), 3, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.AreEqual(3, testObject.VarTwo);
+
             TestObject.StaticVarOne = true;
             Assert.AreEqual(true, testObject.GetPropertyValue<bool>(nameof(TestObject.StaticVarOne), BindingFlags.Static | BindingFlags.Public));
             testObject.SetPropertyValue(nameof(TestObject.StaticVarOne), false, BindingFlags.Static | BindingFlags.Public);
