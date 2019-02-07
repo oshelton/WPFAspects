@@ -21,10 +21,13 @@ namespace WPFAspects.Validation
     /// <remarks>
     /// This class should not be inherited from in client code.  Instead use the generic subclass of this class.
     /// </remarks>
-    public abstract class Validator : INotifyPropertyChanged
+    public abstract class Validator : Core.Model
     {
         public Validator(Core.Model validatedObject)
         {
+            if (validatedObject == null)
+                throw new ArgumentException(nameof(validatedObject));
+
             validatedObject.PropertyChanged += (s, args) => OnValidatedObjectPropertyChanged(args.PropertyName);
         }
 
@@ -48,17 +51,17 @@ namespace WPFAspects.Validation
         }
 
         #region Core validation methods.
-        ///
-        public Task OnValidatedObjectPropertyChanged(string propertyName)
+        ///Handle actual validation as properties change on the validated object.
+        public void OnValidatedObjectPropertyChanged(string propertyName)
         {
             if (string.IsNullOrEmpty(propertyName))
-                return CheckObject();
+                CheckObject();
             else
-                return CheckProperty(propertyName);
+                CheckProperty(propertyName);
         }
 
-        public abstract Task CheckObject();
-        public abstract Task CheckProperty(string propertyName);
+        public abstract void CheckObject();
+        public abstract void CheckProperty(string propertyName);
         #endregion
 
         #region Validation related events
@@ -76,27 +79,13 @@ namespace WPFAspects.Validation
         protected void InvokePropertyValidationFailed(Core.Model model, string propertyName, object value) { PropertyValidationFail?.Invoke(model, propertyName, value); }
         protected void InvokePropertyValidationSuccess(Core.Model model, string propertyName, object value) { PropertyValidationSuccess?.Invoke(model, propertyName, value); }
         #endregion
-
-        #region INotifyPropertyChanged related items.
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnThisPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        #endregion
     }
 
     /// <summary>
     /// Base class for object validators.  This is what you want to subclass in client code.
     /// </summary>
     /// <typeparam name="T">The type this validator validates.</typeparam>
-    public abstract class Validator<T> : Validator where T : Core.Model
+    public abstract class Validator<T> : Validator where T : Core.ValidatedModel
     {
         ///Dictionary of validation rules attached to this validator.
         private Dictionary<string, List<Rules.Rule<T>>> ValidationRules = new Dictionary<string, List<Rules.Rule<T>>>();
@@ -117,16 +106,14 @@ namespace WPFAspects.Validation
             get { return _HasErrors; }
             protected set
             {
-                if (value != _HasErrors)
+                if (SetPropertyBackingValue(value, ref _HasErrors))
                 {
-                    _HasErrors = value;
-                    OnThisPropertyChanged();
                     if (!value)
                         InvokeValidationFailed(ValidatedObject);
                     else
                         InvokeValidationSuccess(ValidatedObject);
 
-                    ValidatedObject.RaisePropertyChanged(nameof(Core.Model.HasErrors));
+                    ValidatedObject.RaisePropertyChanged(nameof(Core.ValidatedModel.HasErrors));
                 }
             }
         }
@@ -146,37 +133,31 @@ namespace WPFAspects.Validation
 
         #region Validation related methods.
         ///Validate all properties on this object.
-        public override Task CheckObject()
+        public override void CheckObject()
         {
-            return Task.Run(() =>
+            foreach (var ruleGroup in ValidationRules)
             {
-                foreach (var ruleGroup in ValidationRules)
-                {
-                    CheckPropertyInternal(ruleGroup.Key);
-                }
-            });
+                CheckPropertyInternal(ruleGroup.Key);
+            }
         }
 
         ///Validate a specific property.
-        public override Task CheckProperty(string propertyName)
+        public override void CheckProperty(string propertyName)
         {
-            return Task.Run(() =>
-            {
-                HashSet<string> processed = new HashSet<string>();
-                if (ValidationRules.ContainsKey(propertyName))
-                    CheckPropertyInternal(propertyName);
-                processed.Add(propertyName);
+            HashSet<string> processed = new HashSet<string>();
+            if (ValidationRules.ContainsKey(propertyName))
+                CheckPropertyInternal(propertyName);
+            processed.Add(propertyName);
 
-                //Also check properties for whom the property is set up as an also check on property.
-                foreach (var otherToCheck in ValidationRules.Where(v => v.Value.Any(r => r.RuleShouldBeCheckedOnChanged(propertyName))))
+            //Also check properties for whom the property is set up as an also check on property.
+            foreach (var otherToCheck in ValidationRules.Where(v => v.Value.Any(r => r.RuleShouldBeCheckedOnChanged(propertyName))))
+            {
+                if (!processed.Contains(otherToCheck.Key))
                 {
-                    if (!processed.Contains(otherToCheck.Key))
-                    {
-                        processed.Add(otherToCheck.Key);
-                        CheckPropertyInternal(otherToCheck.Key);
-                    }
+                    processed.Add(otherToCheck.Key);
+                    CheckPropertyInternal(otherToCheck.Key);
                 }
-            });
+            }
         }
 
         ///Underlying logic for validating a property.

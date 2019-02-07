@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="DirtyTrackerTests.cs" />
     <Compile Include="ModelTests.cs" />
+    <Compile Include="ModelValidationTests.cs" />
     <Compile Include="PropertyGetterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

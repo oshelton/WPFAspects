@@ -6,10 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WPFAspects.Core
 {
@@ -50,38 +47,9 @@ namespace WPFAspects.Core
     /// <summary>
     /// Base class for Data and View model classes.
     /// </summary>
-    public abstract class Model : INotifyDataErrorInfo, INotifyPropertyChanging, INotifyPropertyChanged
+    public abstract class Model : INotifyPropertyChanging, INotifyPropertyChanged
     {
-        public Model()
-        {
-            Validator = GetValidator();
-        }
-
-        #region Validation related items.
-        public bool HasErrors => Validator?.HasErrors ?? false;
-        //TODO: Implement me! I should not be abstract.  I need stuff from the Validator class that doesn't exist yet though.
-        public System.Collections.IEnumerable GetErrors(string propertyName)
-        {
-            throw new NotImplementedException();
-        }
-
-        ///Event triggered when the validation state of an object's property changes.
-        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
-        internal void InvokeErrorsChanged(string propertyName = null)
-        {
-            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
-        }
-
-        /// <summary>
-        /// Subclasses should override this method in order to provide an instance of a Validator object appropriate
-        /// to the type.
-        /// </summary>
-        /// <remarks>
-        /// Null can be returned for objects that don't really need validation.
-        /// </remarks>
-        protected virtual Validation.Validator GetValidator() { return null; }
-        public Validation.Validator Validator { get; private set; }
-        #endregion
+        public Model() {}
 
         private static HashSet<string> _defaultUntrackedProperties = new HashSet<string>();
         public virtual HashSet<string> DefaultUntrackedProperties => _defaultUntrackedProperties;
