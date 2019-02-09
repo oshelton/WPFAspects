@@ -108,7 +108,7 @@ namespace WPFAspects.Validation
             {
                 if (SetPropertyBackingValue(value, ref _HasErrors))
                 {
-                    if (!value)
+                    if (value)
                         InvokeValidationFailed(ValidatedObject);
                     else
                         InvokeValidationSuccess(ValidatedObject);
