@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFAspects", "WPFAspects\WPFAspects.csproj", "{F1E7E694-FE59-46D5-85DE-3E80CEF6E73D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFAspects", "WPFAspects\WPFAspects.csproj", "{F1E7E694-FE59-46D5-85DE-3E80CEF6E73D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfAspectTests", "WpfAspectsTests\WpfAspectTests.csproj", "{F2A66B50-3F10-4F6B-A3B6-536ACFFB217A}"
 EndProject

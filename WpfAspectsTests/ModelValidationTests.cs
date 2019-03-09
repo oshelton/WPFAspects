@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Collections.Generic;
 using WPFAspects.Core;
-using WPFAspects.Utils;
 using WPFAspects.Validation;
 using WPFAspects.Validation.Rules;
+using Xunit;
 
 namespace UtilTests
 {
-    [TestClass]
     public class ModelValidationTests
     {
         private class TestModel : ValidatedModel
@@ -64,59 +59,59 @@ namespace UtilTests
             }
         }
         
-        [TestMethod]
+        [Fact]
         public void TestSimplePropertyValidation()
         {
             var testModel = new TestModel();
 
-            Assert.AreEqual(false, testModel.HasErrors);
-            Assert.AreEqual(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.False(testModel.HasErrors);
+            Assert.Equal(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
             testModel.Validator.CheckProperty(nameof(TestModel.PropertyOne));
-            Assert.AreEqual(true, testModel.HasErrors);
-            Assert.AreEqual(1, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
-            Assert.AreEqual("Property One must have a value.", testModel.GetErrorsList(nameof(TestModel.PropertyOne))[0]);
+            Assert.True(testModel.HasErrors);
+            Assert.Equal(1, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.Equal("Property One must have a value.", testModel.GetErrorsList(nameof(TestModel.PropertyOne))[0]);
 
             testModel.PropertyOne = "Hi!";
-            Assert.AreEqual(false, testModel.HasErrors);
-            Assert.AreEqual(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.False(testModel.HasErrors);
+            Assert.Equal(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestSimpleObjectValidation()
         {
             var testModel = new TestModel();
 
-            Assert.AreEqual(false, testModel.HasErrors);
-            Assert.AreEqual(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.False(testModel.HasErrors);
+            Assert.Equal(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
             testModel.Validator.CheckObject();
-            Assert.AreEqual(true, testModel.HasErrors);
-            Assert.AreEqual(1, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
-            Assert.AreEqual("Property One must have a value.", testModel.GetErrorsList(nameof(TestModel.PropertyOne))[0]);
+            Assert.True(testModel.HasErrors);
+            Assert.Equal(1, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.Equal("Property One must have a value.", testModel.GetErrorsList(nameof(TestModel.PropertyOne))[0]);
 
             testModel.PropertyOne = "Hi!";
-            Assert.AreEqual(false, testModel.HasErrors);
-            Assert.AreEqual(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.False(testModel.HasErrors);
+            Assert.Equal(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestSimplePropertyDependency()
         {
             var testModel = new TestModel();
 
-            Assert.AreEqual(false, testModel.HasErrors);
-            Assert.AreEqual(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.False(testModel.HasErrors);
+            Assert.Equal(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
             testModel.Validator.CheckProperty(nameof(TestModel.PropertyTwo));
-            Assert.AreEqual(true, testModel.HasErrors);
-            Assert.AreEqual(1, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
-            Assert.AreEqual("Property One must have a value.", testModel.GetErrorsList(nameof(TestModel.PropertyOne))[0]);
+            Assert.True(testModel.HasErrors);
+            Assert.Equal(1, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.Equal("Property One must have a value.", testModel.GetErrorsList(nameof(TestModel.PropertyOne))[0]);
 
             testModel.PropertyOne = "Hi!";
             testModel.Validator.CheckProperty(nameof(TestModel.PropertyTwo));
-            Assert.AreEqual(false, testModel.HasErrors);
-            Assert.AreEqual(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
+            Assert.False(testModel.HasErrors);
+            Assert.Equal(0, testModel.GetErrorsList(nameof(TestModel.PropertyOne)).Count);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestValidationEvents()
         {
             var testModel = new TestModel();
@@ -124,7 +119,7 @@ namespace UtilTests
             bool receivedErrorNotification = false;
             testModel.ErrorsChanged += (sender, args) =>
             {
-                Assert.AreEqual(nameof(TestModel.PropertyOne), args.PropertyName);
+                Assert.Equal(nameof(TestModel.PropertyOne), args.PropertyName);
                 receivedErrorNotification = true;
             };
 
@@ -137,7 +132,7 @@ namespace UtilTests
             bool receivedPropertyValidationFailed = false;
             testModel.Validator.PropertyValidationFail += (sender, propertyName, value) =>
             {
-                Assert.AreEqual(nameof(TestModel.PropertyOne), propertyName);
+                Assert.Equal(nameof(TestModel.PropertyOne), propertyName);
                 receivedPropertyValidationFailed = true;
             };
 
@@ -150,21 +145,21 @@ namespace UtilTests
             bool receivedPropertyValidationSuccess = false;
             testModel.Validator.PropertyValidationSuccess += (sender, propertyName, value) =>
             {
-                Assert.AreEqual(nameof(TestModel.PropertyOne), propertyName);
+                Assert.Equal(nameof(TestModel.PropertyOne), propertyName);
                 receivedPropertyValidationSuccess = true;
             };
 
-            Assert.AreEqual(false, receivedErrorNotification);
-            Assert.AreEqual(false, receivedValidationFailed);
-            Assert.AreEqual(false, receivedPropertyValidationFailed);
+            Assert.False(receivedErrorNotification);
+            Assert.False(receivedValidationFailed);
+            Assert.False(receivedPropertyValidationFailed);
             testModel.Validator.CheckProperty(nameof(TestModel.PropertyTwo));
-            Assert.AreEqual(true, receivedErrorNotification);
-            Assert.AreEqual(true, receivedValidationFailed);
-            Assert.AreEqual(true, receivedPropertyValidationFailed);
+            Assert.True(receivedErrorNotification);
+            Assert.True(receivedValidationFailed);
+            Assert.True(receivedPropertyValidationFailed);
 
             testModel.PropertyOne = "Hi!";
-            Assert.AreEqual(true, receivedValidationSuccess);
-            Assert.AreEqual(true, receivedPropertyValidationSuccess);
+            Assert.True(receivedValidationSuccess);
+            Assert.True(receivedPropertyValidationSuccess);
         }
     }
 }

@@ -1,13 +1,8 @@
-﻿using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Xunit;
 using WPFAspects.Core;
 
 namespace UtilTests
 {
-    [TestClass]
     public class DirtyTrackerTests
     {
         private class TestModel : Model
@@ -29,67 +24,67 @@ namespace UtilTests
             }
         }
         
-        [TestMethod]
+        [Fact]
         public void TestBasicTracking()
         {
             var testModel = new TestModel();
             var tracker = new DirtyTracker(testModel);
 
-            Assert.AreEqual(false, tracker.IsDirty);
+            Assert.False(tracker.IsDirty);
 
             testModel.PropertyOne = "Hello!";
 
-            Assert.AreEqual(true, tracker.IsDirty);
+            Assert.True(tracker.IsDirty);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestObjectReset()
         {
             var testModel = new TestModel();
             var tracker = new DirtyTracker(testModel);
 
-            Assert.AreEqual(false, tracker.IsDirty);
+            Assert.False(tracker.IsDirty);
 
             testModel.PropertyOne = "Hello!";
 
-            Assert.AreEqual(true, tracker.IsDirty);
+            Assert.True(tracker.IsDirty);
 
             tracker.ResetToInitialState();
 
-            Assert.AreEqual(false, tracker.IsDirty);
-            Assert.AreEqual(null, testModel.PropertyOne);
+            Assert.False(tracker.IsDirty);
+            Assert.Null(testModel.PropertyOne);
 
             testModel.PropertyOne = "Hi!";
             tracker.SetInitialState();
 
-            Assert.AreEqual("Hi!", testModel.PropertyOne);
-            Assert.AreEqual(false, tracker.IsDirty);
+            Assert.Equal("Hi!", testModel.PropertyOne);
+            Assert.False(false);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestPropertyReset()
         {
             var testModel = new TestModel();
             var tracker = new DirtyTracker(testModel);
 
-            Assert.AreEqual(false, tracker.IsDirty);
+            Assert.False(tracker.IsDirty);
 
             testModel.PropertyOne = "Hello!";
             testModel.PropertyTwo = "Prop 2";
 
-            Assert.AreEqual(true, tracker.IsDirty);
+            Assert.True(tracker.IsDirty);
 
             tracker.ResetPropertyToInitialSTate(nameof(TestModel.PropertyOne));
 
-            Assert.AreEqual(true, tracker.IsDirty);
-            Assert.AreEqual(null, testModel.PropertyOne);
-            Assert.AreEqual("Prop 2", testModel.PropertyTwo);
+            Assert.True(tracker.IsDirty);
+            Assert.Null(testModel.PropertyOne);
+            Assert.Equal("Prop 2", testModel.PropertyTwo);
 
             tracker.ResetPropertyToInitialSTate(nameof(TestModel.PropertyTwo));
 
-            Assert.AreEqual(false, tracker.IsDirty);
-            Assert.AreEqual(null, testModel.PropertyOne);
-            Assert.AreEqual(null, testModel.PropertyTwo);
+            Assert.False(tracker.IsDirty);
+            Assert.Null(testModel.PropertyOne);
+            Assert.Null(testModel.PropertyTwo);
         }
     }
 }
