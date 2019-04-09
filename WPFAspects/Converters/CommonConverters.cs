@@ -27,5 +27,9 @@ namespace WPFAspects.Converters
         /// Convert boolean false values to Visibility.Visible and true to Visibility.Collapsed.
         public static GenericConverter<bool, object> BooleanTrueToVisibilityCollapsed { get; } =
             new GenericConverter<bool, object>((value, param) => value ? Visibility.Collapsed : Visibility.Visible);
+
+        /// Convert boolean false values to Visibility.Visible and true to Visibility.Collapsed.
+        public static GenericConverter<bool, object> InvertBoolean { get; } =
+            new GenericConverter<bool, object>((value, param) => !value);
     }
 }

@@ -41,5 +41,13 @@ namespace UtilTests
             Assert.Equal(Visibility.Visible, CommonConverters.BooleanTrueToVisibilityCollapsed.Convert(false, typeof(Visibility), null, CultureInfo.CurrentCulture));
             Assert.Equal(DependencyProperty.UnsetValue, CommonConverters.BooleanTrueToVisibilityCollapsed.Convert(null, typeof(Visibility), null, CultureInfo.CurrentCulture));
         }
+
+        [Fact]
+        public void TestInvertBoolean()
+        {
+            Assert.True((bool)CommonConverters.InvertBoolean.Convert(false, typeof(bool), null, CultureInfo.CurrentCulture));
+            Assert.False((bool)CommonConverters.InvertBoolean.Convert(true, typeof(bool), null, CultureInfo.CurrentCulture));
+            Assert.Equal(DependencyProperty.UnsetValue, CommonConverters.InvertBoolean.Convert(null, typeof(bool), null, CultureInfo.CurrentCulture));
+        }
     }
 }
