@@ -36,12 +36,15 @@ namespace WPFAspects.Core
         {
 
             RemoveHandlers();
-            if (_InitialValues.Count > 0)
+            if (_InitialValues.Count != 0)
             {
                 foreach (var pair in _InitialValues)
                     _TrackedObject.SetPropertyValue(pair.Key, pair.Value);
             }
             IsDirty = false;
+
+            foreach (var group in _TrackingGroups.Values)
+                group.IsDirty = false;
             AddHandlers();
         }
 
@@ -64,6 +67,10 @@ namespace WPFAspects.Core
         {
             _InitialValues.Clear();
             _NewValues.Clear();
+
+            foreach (var group in _TrackingGroups.Values)
+                group.IsDirty = false;
+
             IsDirty = false;
         }
 

@@ -15,7 +15,7 @@ namespace WPFAspects.Utils
     /// <summary>
     /// Class that allows binding XAML events to view model methods.
     /// </summary>
-    /// <remarks></remarks>
+    /// <remarks>Code is from here: https://thomaslevesque.com/2011/09/23/wpf-4-5-subscribing-to-an-event-using-a-markup-extension/. </remarks>
     public class EventBindingExtension : MarkupExtension
     {
         private EventInfo _eventInfo;

@@ -117,5 +117,25 @@ namespace UtilTests
             Assert.False(group1.IsDirty);
             Assert.False(tracker.IsDirty);
         }
+
+        [Fact]
+        public void TestResetPropertyGroups()
+        {
+            var testModel = new TestModel();
+            var tracker = new DirtyTracker(testModel);
+
+            var group1 = tracker.CreateDirtyTrackingGroup("group", nameof(TestModel.PropertyOne));
+
+            testModel.PropertyOne = "New Value";
+
+            Assert.True(group1.IsDirty);
+            Assert.True(tracker.IsDirty);
+
+            tracker.ResetToInitialState();
+
+            Assert.False(group1.IsDirty);
+            Assert.False(tracker.IsDirty);
+            
+        }
     }
 }
