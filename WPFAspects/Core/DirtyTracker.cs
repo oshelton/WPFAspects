@@ -14,7 +14,7 @@ namespace WPFAspects.Core
     /// Simple class for tracking changes to models.
     /// </summary>
     /// <remarks>Cannot be used to track collection based properties.</remarks>
-    public class DirtyTracker : INotifyPropertyChanged
+    public class DirtyTracker : Model, IDisposable
     {
         public DirtyTracker(Model toTrack)
         {
@@ -24,54 +24,9 @@ namespace WPFAspects.Core
             AddHandlers();
         }
 
-        private Model _TrackedObject = null;
-        public Model TrackedObject => _TrackedObject;
-
-        private HashSet<string> _IgnoredProperties = null;
-        /// <summary>
-        /// Get/Set the properties changes to should be ignored.
-        /// </summary>
-        /// <remarks>Defaults to Model.DefaultUntrackedProperties.</remarks>
-        public HashSet<string> IgnoredProperties
+        public void Dispose()
         {
-            get => _IgnoredProperties;
-            set => _IgnoredProperties = value ?? throw new ArgumentException("Value cannot be null.");
-        }
-
-        private bool _IsDirty = false;
-        /// <summary>
-        /// Get whether or not the tracked object is dirty (has changes).
-        /// </summary>
-        public bool IsDirty
-        {
-            get => _IsDirty;
-            set
-            {
-                if (value != _IsDirty)
-                {
-                    _IsDirty = value;
-                    OnPropertyChanged(nameof(IsDirty));
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Add the necessary event handlers.
-        /// </summary>
-        private void AddHandlers()
-        {
-            _TrackedObject.PropertyChangingFromValue += OnTrackedObjectPropertyChanging;
-            _TrackedObject.PropertyChangedToValue += OnTrackedObjectPropertyChanged;
-        }
-
-        /// <summary>
-        /// Remove the event handlers.
-        /// </summary>
-        private void RemoveHandlers()
-        {
-            _TrackedObject.PropertyChangingFromValue -= OnTrackedObjectPropertyChanging;
-            _TrackedObject.PropertyChangedToValue -= OnTrackedObjectPropertyChanged;
+            RemoveHandlers();
         }
 
         /// <summary>
@@ -115,7 +70,7 @@ namespace WPFAspects.Core
         /// <summary>
         /// Get whether or not the passed in property has changed.
         /// </summary>
-        public bool HasPropertyChanged(string propertyName)
+        public bool IsPropertyDirty(string propertyName)
         {
             return _NewValues.ContainsKey(propertyName);
         }
@@ -131,6 +86,35 @@ namespace WPFAspects.Core
             return _InitialValues.TryGetValue(propertyName, out object initial) ? initial : null; 
         }
 
+        public DirtyTrackingGroup CreateDirtyTrackingGroup(string groupName, params string[] propertiesForGroup)
+        {
+            var newGroup = new DirtyTrackingGroup(groupName, propertiesForGroup);
+            _TrackingGroups.Add(groupName, newGroup);
+
+            if (propertiesForGroup.Any(p => _NewValues.ContainsKey(p)))
+                newGroup.IsDirty = true;
+
+            return newGroup;
+        }
+
+        /// <summary>
+        /// Add the necessary event handlers.
+        /// </summary>
+        private void AddHandlers()
+        {
+            _TrackedObject.PropertyChangingFromValue += OnTrackedObjectPropertyChanging;
+            _TrackedObject.PropertyChangedToValue += OnTrackedObjectPropertyChanged;
+        }
+
+        /// <summary>
+        /// Remove the event handlers.
+        /// </summary>
+        private void RemoveHandlers()
+        {
+            _TrackedObject.PropertyChangingFromValue -= OnTrackedObjectPropertyChanging;
+            _TrackedObject.PropertyChangedToValue -= OnTrackedObjectPropertyChanged;
+        }
+
         private void OnTrackedObjectPropertyChanging(object sender, PropertyChangingWithValueEventArgs args)
         {
             if ((args.PreviousValue as IEnumerable) == null && !_InitialValues.ContainsKey(args.PropertyName))
@@ -142,17 +126,58 @@ namespace WPFAspects.Core
             if (args.NewValue is string || !(args.NewValue is IEnumerable))
             {
                 if (!Equals(_InitialValues[args.PropertyName], args.NewValue))
+                {
                     _NewValues[args.PropertyName] = args.NewValue;
+
+                    foreach (var group in _TrackingGroups.Values)
+                    {
+                        if (group.TracksProperties.Any(p => p == args.PropertyName))
+                            group.IsDirty = true;
+                    }
+                }
                 else
+                {
+                    _InitialValues.Remove(args.PropertyName);
                     _NewValues.Remove(args.PropertyName);
 
-                if (_NewValues.Count > 0)
+                    foreach (var group in _TrackingGroups.Values)
+                    {
+                        if (!group.TracksProperties.Any(p => _NewValues.ContainsKey(p)))
+                            group.IsDirty = false;
+                    }
+                }
+
+                if (_NewValues.Count != 0)
                     IsDirty = true;
                 else
                     IsDirty = false;
             }
         }
-        
+
+        private Model _TrackedObject = null;
+        public Model TrackedObject => _TrackedObject;
+
+        private HashSet<string> _IgnoredProperties = null;
+        /// <summary>
+        /// Get/Set the properties changes to should be ignored.
+        /// </summary>
+        /// <remarks>Defaults to Model.DefaultUntrackedProperties.</remarks>
+        public HashSet<string> IgnoredProperties
+        {
+            get => _IgnoredProperties;
+            set => _IgnoredProperties = value ?? throw new ArgumentException("Value cannot be null.");
+        }
+
+        private bool _IsDirty = false;
+        /// <summary>
+        /// Get whether or not the tracked object is dirty (has changes).
+        /// </summary>
+        public bool IsDirty
+        {
+            get => _IsDirty;
+            set => SetPropertyBackingValue(value, ref _IsDirty);
+        }
+
         /// <summary>
         /// Initial property values of the object, keyed by name.
         /// </summary>
@@ -162,17 +187,9 @@ namespace WPFAspects.Core
         /// </summary>
         private readonly Dictionary<string, object> _NewValues = new Dictionary<string, object>();
 
-        #region INotifyPropertyChanged related items.
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public virtual void RaisePropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        #endregion
+        /// <summary>
+        /// Dictionary for keeping track of property tracking groups.
+        /// </summary>
+        private readonly Dictionary<string, DirtyTrackingGroup> _TrackingGroups = new Dictionary<string, DirtyTrackingGroup>();
     }
 }

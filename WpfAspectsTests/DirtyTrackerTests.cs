@@ -76,6 +76,8 @@ namespace UtilTests
 
             tracker.ResetPropertyToInitialSTate(nameof(TestModel.PropertyOne));
 
+            Assert.False(tracker.IsPropertyDirty(nameof(TestModel.PropertyOne)));
+            Assert.True(tracker.IsPropertyDirty(nameof(TestModel.PropertyTwo)));
             Assert.True(tracker.IsDirty);
             Assert.Null(testModel.PropertyOne);
             Assert.Equal("Prop 2", testModel.PropertyTwo);
@@ -85,6 +87,35 @@ namespace UtilTests
             Assert.False(tracker.IsDirty);
             Assert.Null(testModel.PropertyOne);
             Assert.Null(testModel.PropertyTwo);
+        }
+
+        [Fact]
+        public void TestPropertyGroups()
+        {
+            var testModel = new TestModel();
+            var tracker = new DirtyTracker(testModel);
+
+            var group1 = tracker.CreateDirtyTrackingGroup("group", nameof(TestModel.PropertyOne));
+
+            testModel.PropertyOne = "New Value";
+
+            Assert.True(group1.IsDirty);
+            Assert.True(tracker.IsDirty);
+
+            testModel.PropertyTwo = "Other Value";
+
+            Assert.True(group1.IsDirty);
+            Assert.True(tracker.IsDirty);
+
+            testModel.PropertyOne = null;
+
+            Assert.False(group1.IsDirty);
+            Assert.True(tracker.IsDirty);
+
+            testModel.PropertyTwo = null;
+
+            Assert.False(group1.IsDirty);
+            Assert.False(tracker.IsDirty);
         }
     }
 }
