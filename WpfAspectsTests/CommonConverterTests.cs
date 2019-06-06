@@ -49,5 +49,28 @@ namespace UtilTests
             Assert.False((bool)CommonConverters.InvertBoolean.Convert(true, typeof(bool), null, CultureInfo.CurrentCulture));
             Assert.Equal(DependencyProperty.UnsetValue, CommonConverters.InvertBoolean.Convert(null, typeof(bool), null, CultureInfo.CurrentCulture));
         }
+
+        [Fact]
+        public void TestObjectsAreEqual()
+        {
+            Assert.False((bool)CommonConverters.ObjectsAreEqual.Convert(0, typeof(object), 5, CultureInfo.CurrentCulture));
+            Assert.True((bool)CommonConverters.ObjectsAreEqual.Convert(0, typeof(object), 0, CultureInfo.CurrentCulture));
+            Assert.False((bool)CommonConverters.ObjectsAreEqual.Convert("Hi!", typeof(object), "Bye!", CultureInfo.CurrentCulture));
+            Assert.True((bool)CommonConverters.ObjectsAreEqual.Convert("One", typeof(object), "One", CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void TestNullToCollapsed()
+        {
+            Assert.Equal(Visibility.Collapsed, CommonConverters.NullToVisibilityCollapsed.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.NullToVisibilityCollapsed.Convert("Word!", typeof(object), null, CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void TestNullToHidden()
+        {
+            Assert.Equal(Visibility.Hidden, CommonConverters.NullToVisibilityHidden.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.NullToVisibilityHidden.Convert("Word!", typeof(object), null, CultureInfo.CurrentCulture));
+        }
     }
 }

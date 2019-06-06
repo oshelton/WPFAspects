@@ -32,7 +32,16 @@ namespace WPFAspects.Converters
         public static GenericConverter<bool, object> InvertBoolean { get; } =
             new GenericConverter<bool, object>((value, param) => !value);
 
+        /// Returns true if the passed in objects are equal.
         public static GenericConverter<object, object> ObjectsAreEqual { get; } =
             new GenericConverter<object, object>((value, param) => value.Equals(param));
+
+        /// Returns visibility collapsed if the input value is equal to null.
+        public static GenericConverter<object, object> NullToVisibilityCollapsed { get; } =
+            new GenericConverter<object, object>((value, param) => value is null ? Visibility.Collapsed : Visibility.Visible, true);
+
+        /// Returns visibility hidden if the input value is equal to null.
+        public static GenericConverter<object, object> NullToVisibilityHidden { get; } =
+            new GenericConverter<object, object>((value, param) => value is null ? Visibility.Hidden : Visibility.Visible, true);
     }
 }

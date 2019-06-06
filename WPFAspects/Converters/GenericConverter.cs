@@ -16,20 +16,21 @@ namespace WPFAspects.Converters
     /// <typeparam name="U">Desired typ of the conversion parameter.</typeparam>
     public class GenericConverter<T, U> : IValueConverter
     {
-        public GenericConverter(Func<T, U, object> converterFunction, object defaultValue = null)
+        public GenericConverter(Func<T, U, object> converterFunction, bool passThroughNull = false, object defaultValue = null)
         {
             if (converterFunction == null)
                 throw new ArgumentException(nameof(converterFunction));
 
             _ConverterFunction = converterFunction;
 
+            _PassThroughNull = passThroughNull;
             if (defaultValue == null)
                 _DefaultValue = DependencyProperty.UnsetValue;
         }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is T && (parameter == null || parameter is U))
+            if ((value is T || (value is null && _PassThroughNull)) && (parameter == null || parameter is U))
                 return _ConverterFunction((T)value, (U)parameter);
             else
                 return _DefaultValue;
@@ -41,6 +42,7 @@ namespace WPFAspects.Converters
         }
 
         private Func<T, U, object> _ConverterFunction = null;
+        private bool _PassThroughNull;
         private object _DefaultValue;
     }
 }
