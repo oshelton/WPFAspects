@@ -43,5 +43,9 @@ namespace WPFAspects.Converters
         /// Returns visibility hidden if the input value is equal to null.
         public static GenericConverter<object, object> NullToVisibilityHidden { get; } =
             new GenericConverter<object, object>((value, param) => value is null ? Visibility.Hidden : Visibility.Visible, true);
-    }
+
+		/// Multiply a double by -1.
+		public static GenericConverter<double, object> MultiplyDoubleByNegativeOne { get; } =
+			new GenericConverter<double, object>((value, param) => value * -1);
+	}
 }
