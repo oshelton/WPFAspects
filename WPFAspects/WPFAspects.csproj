@@ -41,6 +41,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Aspects.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Aspects.xaml">
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
