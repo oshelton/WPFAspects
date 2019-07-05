@@ -124,7 +124,7 @@ namespace WPFAspects.Core
 
         private void OnTrackedObjectPropertyChanging(object sender, PropertyChangingWithValueEventArgs args)
         {
-            if ((args.PreviousValue as IEnumerable) == null && !_InitialValues.ContainsKey(args.PropertyName))
+            if ((args.PreviousValue is string || (args.PreviousValue as IEnumerable) == null) && !_InitialValues.ContainsKey(args.PropertyName))
                 _InitialValues.Add(args.PropertyName, args.PreviousValue);
         }
 
