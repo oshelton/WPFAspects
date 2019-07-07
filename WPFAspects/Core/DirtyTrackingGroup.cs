@@ -20,7 +20,7 @@ namespace WPFAspects.Core
         private bool _IsDirty;
         public bool IsDirty
         {
-            get => _IsDirty;
+            get => CheckIsOnMainThread(_IsDirty);
             internal set => SetPropertyBackingValue(value, ref _IsDirty);
         }
     }

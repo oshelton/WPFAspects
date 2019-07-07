@@ -12,14 +12,14 @@ namespace UtilTests
             private string _PropertyOne = null;
             public string PropertyOne
             {
-                get => _PropertyOne;
+                get => CheckIsOnMainThread(_PropertyOne);
                 set => SetPropertyBackingValue(value, ref _PropertyOne);
             }
 
             private string _PropertyTwo = null;
             public string PropertyTwo
             {
-                get => _PropertyTwo;
+                get => CheckIsOnMainThread(_PropertyTwo);
                 set => SetPropertyBackingValue(value, ref _PropertyTwo); 
             }
         }
