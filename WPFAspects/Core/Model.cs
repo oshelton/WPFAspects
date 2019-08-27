@@ -58,7 +58,7 @@ namespace WPFAspects.Core
 
         protected T CheckIsOnMainThread<T>(T value)
         {
-            if (!Application.Current.Dispatcher.CheckAccess())
+            if (Application.Current != null && !Application.Current.Dispatcher.CheckAccess())
                 throw new InvalidOperationException($"Cannot access from background thread.");
 
             return value;
@@ -66,7 +66,7 @@ namespace WPFAspects.Core
 
         protected bool SetPropertyBackingValue<T>(T newValue, ref T field, [CallerMemberName] string propertyName = null)
         {
-            if (!Application.Current.Dispatcher.CheckAccess())
+            if (Application.Current != null && !Application.Current.Dispatcher.CheckAccess())
                 throw new InvalidOperationException($"Cannot set property \"{propertyName}\" from a background thread.");
 
             if (!Equals(field, newValue))
