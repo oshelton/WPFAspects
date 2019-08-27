@@ -72,5 +72,63 @@ namespace UtilTests
             Assert.Equal(Visibility.Hidden, CommonConverters.NullToVisibilityHidden.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
             Assert.Equal(Visibility.Visible, CommonConverters.NullToVisibilityHidden.Convert("Word!", typeof(object), null, CultureInfo.CurrentCulture));
         }
+
+        [Fact]
+        public void TestNullEmptyEnumerableToVisibilityCollapsed()
+        {
+            Assert.Equal(Visibility.Collapsed, CommonConverters.NullEmptyEnumerableToVisibilityCollapsed.Convert(new object[0], typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Collapsed, CommonConverters.NullEmptyEnumerableToVisibilityCollapsed.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.NullEmptyEnumerableToVisibilityCollapsed.Convert(new object[] { "Hi!" }, typeof(object), null, CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void TestNullEmptyEnumerableToVisibilityHidden()
+        {
+            Assert.Equal(Visibility.Hidden, CommonConverters.NullEmptyEnumerableToVisibilityHidden.Convert(new object[0], typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Hidden, CommonConverters.NullEmptyEnumerableToVisibilityHidden.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.NullEmptyEnumerableToVisibilityHidden.Convert(new object[] { "Hi!" }, typeof(object), null, CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void TestVisibilityAndOrCollapsed()
+        {
+            Assert.Equal(Visibility.Collapsed, CommonConverters.VisibilityAndOrCollapsed.Convert(new object[0], typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Collapsed, CommonConverters.VisibilityAndOrCollapsed.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Collapsed, CommonConverters.VisibilityAndOrCollapsed.Convert(new object[] { Visibility.Visible, Visibility.Hidden }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Collapsed, CommonConverters.VisibilityAndOrCollapsed.Convert(new object[] { Visibility.Visible, Visibility.Collapsed }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.VisibilityAndOrCollapsed.Convert(new object[] { Visibility.Visible, Visibility.Visible }, typeof(object), null, CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void TestVisibilityAndOrHidden()
+        {
+            Assert.Equal(Visibility.Hidden, CommonConverters.VisibilityAndOrHidden.Convert(new object[0], typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Hidden, CommonConverters.VisibilityAndOrHidden.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Hidden, CommonConverters.VisibilityAndOrHidden.Convert(new object[] { Visibility.Visible, Visibility.Hidden }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Hidden, CommonConverters.VisibilityAndOrHidden.Convert(new object[] { Visibility.Visible, Visibility.Collapsed }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.VisibilityAndOrHidden.Convert(new object[] { Visibility.Visible, Visibility.Visible }, typeof(object), null, CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void TestVisibilityOrOrCollapsed()
+        {
+            Assert.Equal(Visibility.Collapsed, CommonConverters.VisibilityOrOrCollapsed.Convert(new object[0], typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Collapsed, CommonConverters.VisibilityOrOrCollapsed.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Collapsed, CommonConverters.VisibilityOrOrCollapsed.Convert(new object[] { Visibility.Hidden, Visibility.Collapsed }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.VisibilityOrOrCollapsed.Convert(new object[] { Visibility.Visible, Visibility.Hidden }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.VisibilityOrOrCollapsed.Convert(new object[] { Visibility.Visible, Visibility.Collapsed }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.VisibilityOrOrCollapsed.Convert(new object[] { Visibility.Visible, Visibility.Visible }, typeof(object), null, CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void TestVisibilityOrOrHidden()
+        {
+            Assert.Equal(Visibility.Hidden, CommonConverters.VisibilityOrOrHidden.Convert(new object[0], typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Hidden, CommonConverters.VisibilityOrOrHidden.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Hidden, CommonConverters.VisibilityOrOrHidden.Convert(new object[] { Visibility.Hidden, Visibility.Collapsed }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.VisibilityOrOrHidden.Convert(new object[] { Visibility.Visible, Visibility.Hidden }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.VisibilityOrOrHidden.Convert(new object[] { Visibility.Visible, Visibility.Collapsed }, typeof(object), null, CultureInfo.CurrentCulture));
+            Assert.Equal(Visibility.Visible, CommonConverters.VisibilityOrOrHidden.Convert(new object[] { Visibility.Visible, Visibility.Visible }, typeof(object), null, CultureInfo.CurrentCulture));
+        }
     }
 }

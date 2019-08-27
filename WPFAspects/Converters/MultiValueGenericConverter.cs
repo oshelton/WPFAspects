@@ -12,11 +12,11 @@ namespace WPFAspects.Converters
     /// <summary>
     /// Class for simple converters that can be implemented via a function passed in.
     /// </summary>
-    /// <typeparam name="T">Desired type of the value to convert.</typeparam>
+    /// <typeparam name="T">Desired type of the values to convert.</typeparam>
     /// <typeparam name="U">Desired typ of the conversion parameter.</typeparam>
-    public class GenericConverter<T, U> : IValueConverter
+    public class MultiValueGenericConverter<T, U> : IMultiValueConverter
     {
-        public GenericConverter(Func<T, U, object> converterFunction, bool passThroughNull = false, object defaultValue = null)
+        public MultiValueGenericConverter(Func<T[], U, object> converterFunction, bool passThroughNull = false, object defaultValue = null)
         {
             _ConverterFunction = converterFunction ?? throw new ArgumentException(nameof(converterFunction));
 
@@ -27,20 +27,20 @@ namespace WPFAspects.Converters
                 _DefaultValue = defaultValue;
         }
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if ((value is T || (value is null && _PassThroughNull)) && (parameter == null || parameter is U))
-                return _ConverterFunction((T)value, (U)parameter);
+            if ((!(values is null) || _PassThroughNull) && (parameter == null || parameter is U))
+                return _ConverterFunction(values.Cast<T>().ToArray(), (U)parameter);
             else
                 return _DefaultValue;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
 
-        private Func<T, U, object> _ConverterFunction = null;
+        private Func<T[], U, object> _ConverterFunction = null;
         private bool _PassThroughNull;
         private object _DefaultValue;
     }

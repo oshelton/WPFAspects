@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace WPFAspects.Converters
     public static class CommonConverters
     {
         /// Convert boolean false values to Visibility.Hidden and true to Visibility.Visible.
-        public static GenericConverter<bool, object> BooleanFalseToVisibilityHidden { get; } = 
+        public static GenericConverter<bool, object> BooleanFalseToVisibilityHidden { get; } =
             new GenericConverter<bool, object>((value, param) => value ? Visibility.Visible : Visibility.Hidden);
 
         /// Convert boolean false values to Visibility.Collapsed and true to Visibility.Visible.
@@ -40,12 +41,46 @@ namespace WPFAspects.Converters
         public static GenericConverter<object, object> NullToVisibilityCollapsed { get; } =
             new GenericConverter<object, object>((value, param) => value is null ? Visibility.Collapsed : Visibility.Visible, true);
 
+        /// Returns visibility collapsed if the input value is null or empty if it is an IEnumerable.
+        public static GenericConverter<IEnumerable, object> NullEmptyEnumerableToVisibilityCollapsed { get; } =
+            new GenericConverter<IEnumerable, object>((value, param) =>
+            {
+                if (value is null)
+                    return Visibility.Collapsed;
+                return value.Cast<object>().Any() ? Visibility.Visible : Visibility.Collapsed;
+            }, true);
+
         /// Returns visibility hidden if the input value is equal to null.
         public static GenericConverter<object, object> NullToVisibilityHidden { get; } =
             new GenericConverter<object, object>((value, param) => value is null ? Visibility.Hidden : Visibility.Visible, true);
 
-		/// Multiply a double by -1.
-		public static GenericConverter<double, object> MultiplyDoubleByNegativeOne { get; } =
+        /// Returns visibility hidden if the input value is null or empty if it is an IEnumerable.
+        public static GenericConverter<IEnumerable, object> NullEmptyEnumerableToVisibilityHidden { get; } =
+            new GenericConverter<IEnumerable, object>((value, param) =>
+            {
+                if (value is null)
+                    return Visibility.Hidden;
+                return value.Cast<object>().Any() ? Visibility.Visible : Visibility.Hidden;
+            }, true);
+
+        /// Multiply a double by -1.
+        public static GenericConverter<double, object> MultiplyDoubleByNegativeOne { get; } =
 			new GenericConverter<double, object>((value, param) => value * -1);
-	}
+
+        /// And together visbility values or return visibility.collapsed if all are not visible.
+        public static MultiValueGenericConverter<Visibility, object> VisibilityAndOrCollapsed { get; } =
+            new MultiValueGenericConverter<Visibility, object>((values, parameter) => values.Any() && values.All(x => x == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed, false, Visibility.Collapsed);
+
+        /// And together visbility values or return visibility.hidden if all are not visible.
+        public static MultiValueGenericConverter<Visibility, object> VisibilityAndOrHidden { get; } =
+            new MultiValueGenericConverter<Visibility, object>((values, parameter) => values.Any() && values.All(x => x == Visibility.Visible) ? Visibility.Visible : Visibility.Hidden, false, Visibility.Hidden);
+
+        /// Or together visbility values or return visibility.collapsed if none are visible.
+        public static MultiValueGenericConverter<Visibility, object> VisibilityOrOrCollapsed { get; } =
+            new MultiValueGenericConverter<Visibility, object>((values, parameter) => values.Any() && values.Any(x => x == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed, false, Visibility.Collapsed);
+
+        /// Or together visbility values or return visibility.hidden if none are visible.
+        public static MultiValueGenericConverter<Visibility, object> VisibilityOrOrHidden { get; } =
+            new MultiValueGenericConverter<Visibility, object>((values, parameter) => values.Any() && values.Any(x => x == Visibility.Visible) ? Visibility.Visible : Visibility.Hidden, false, Visibility.Hidden);
+    }
 }
