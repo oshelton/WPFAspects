@@ -50,6 +50,15 @@ namespace WPFAspects.Converters
                 return value.Cast<object>().Any() ? Visibility.Visible : Visibility.Collapsed;
             }, true);
 
+        /// Returns visibility collapsed if the input value is a non-empty enumerable.
+        public static GenericConverter<IEnumerable, object> NonEmptyEnumerableToVisibilityCollapsed { get; } =
+            new GenericConverter<IEnumerable, object>((value, param) =>
+            {
+                if (value is null)
+                    return Visibility.Visible;
+                return !value.Cast<object>().Any() ? Visibility.Visible : Visibility.Collapsed;
+            }, true);
+
         /// Returns visibility hidden if the input value is equal to null.
         public static GenericConverter<object, object> NullToVisibilityHidden { get; } =
             new GenericConverter<object, object>((value, param) => value is null ? Visibility.Hidden : Visibility.Visible, true);
@@ -61,6 +70,15 @@ namespace WPFAspects.Converters
                 if (value is null)
                     return Visibility.Hidden;
                 return value.Cast<object>().Any() ? Visibility.Visible : Visibility.Hidden;
+            }, true);
+
+        /// Returns visibility collapsed if the input value is a non-empty enumerable.
+        public static GenericConverter<IEnumerable, object> NonEmptyEnumerableToVisibilityHidden { get; } =
+            new GenericConverter<IEnumerable, object>((value, param) =>
+            {
+                if (value is null)
+                    return Visibility.Visible;
+                return !value.Cast<object>().Any() ? Visibility.Visible : Visibility.Hidden;
             }, true);
 
         /// Multiply a double by -1.
