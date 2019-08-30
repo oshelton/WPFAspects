@@ -37,6 +37,14 @@ namespace WPFAspects.Converters
         public static GenericConverter<object, object> ObjectsAreEqual { get; } =
             new GenericConverter<object, object>((value, param) => value.Equals(param));
 
+        /// Returns Visible if the passed in objects are equal or Collapsed.
+        public static GenericConverter<object, object> ObjectsAreEqualOrCollapsed { get; } =
+            new GenericConverter<object, object>((value, param) => value.Equals(param) ? Visibility.Visible : Visibility.Collapsed);
+
+        /// Returns Visible if the passed in objects are equal or Hidden.
+        public static GenericConverter<object, object> ObjectsAreEqualOrHidden { get; } =
+            new GenericConverter<object, object>((value, param) => value.Equals(param) ? Visibility.Visible : Visibility.Hidden);
+
         /// Returns visibility collapsed if the input value is equal to null.
         public static GenericConverter<object, object> NullToVisibilityCollapsed { get; } =
             new GenericConverter<object, object>((value, param) => value is null ? Visibility.Collapsed : Visibility.Visible, true);
