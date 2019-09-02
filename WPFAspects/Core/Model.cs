@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Threading;
+using WPFAspects.Utils;
 
 namespace WPFAspects.Core
 {
@@ -66,7 +67,7 @@ namespace WPFAspects.Core
 
         protected bool SetPropertyBackingValue<T>(T newValue, ref T field, [CallerMemberName] string propertyName = null)
         {
-            if (Application.Current != null && !Application.Current.Dispatcher.CheckAccess())
+            if (!DispatcherHelper.IsOnMainThread())
                 throw new InvalidOperationException($"Cannot set property \"{propertyName}\" from a background thread.");
 
             if (!Equals(field, newValue))
