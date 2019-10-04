@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace WPFAspects.Utils
 {
@@ -18,12 +20,15 @@ namespace WPFAspects.Utils
                 toExecute();
         }
 
-        public static void InvokeAsyncIfNecessary(Action toExecute)
+        public static Task InvokeAsyncIfNecessary(Action toExecute)
         {
             if (!IsOnMainThread())
-                Application.Current.Dispatcher.InvokeAsync(toExecute);
+                return Application.Current.Dispatcher.InvokeAsync(toExecute).Task;
             else
+            {
                 toExecute();
+                return Task.CompletedTask;
+            }
         }
     }
 }
