@@ -54,8 +54,8 @@ namespace WPFAspects.Core
     {
         public Model() {}
 
-        private static HashSet<string> _defaultUntrackedProperties = new HashSet<string>();
-        public virtual HashSet<string> DefaultUntrackedProperties => _defaultUntrackedProperties;
+        private static HashSet<string> _defaultTrackedProperties = new HashSet<string>();
+        public virtual HashSet<string> DefaultTrackedProperties => _defaultTrackedProperties;
 
         protected T CheckIsOnMainThread<T>(T value)
         {

@@ -19,7 +19,7 @@ namespace WPFAspects.Core
         public DirtyTracker(Model toTrack)
         {
             _TrackedObject = toTrack ?? throw new ArgumentException(nameof(toTrack));
-            _IgnoredProperties = toTrack.DefaultUntrackedProperties;
+            TrackedProperties = toTrack.DefaultTrackedProperties;
 
             AddHandlers();
         }
@@ -130,7 +130,7 @@ namespace WPFAspects.Core
 
         private void OnTrackedObjectPropertyChanged(object sender, PropertyChangedWithValueEventArgs args)
         {
-            if (!IgnoredProperties.Contains(args.PropertyName) && (args.NewValue is string || !(args.NewValue is IEnumerable)))
+            if ((TrackedProperties.Count == 0 || TrackedProperties.Contains(args.PropertyName)) && (args.NewValue is string || !(args.NewValue is IEnumerable)))
             {
                 if (!Equals(_InitialValues[args.PropertyName], args.NewValue))
                 {
@@ -164,15 +164,15 @@ namespace WPFAspects.Core
         private Model _TrackedObject = null;
         public Model TrackedObject => _TrackedObject;
 
-        private HashSet<string> _IgnoredProperties = null;
+        private HashSet<string> _TrackedProperties = null;
         /// <summary>
         /// Get/Set the properties changes to should be ignored.
         /// </summary>
-        /// <remarks>Defaults to Model.DefaultUntrackedProperties.</remarks>
-        public HashSet<string> IgnoredProperties
+        /// <remarks>Defaults to Model.DefaultTrackedProperties.</remarks>
+        public HashSet<string> TrackedProperties
         {
-            get => _IgnoredProperties;
-            set => _IgnoredProperties = value ?? throw new ArgumentException("Value cannot be null.");
+            get => _TrackedProperties;
+            set => _TrackedProperties = value ?? throw new ArgumentException("Value cannot be null.");
         }
 
         private bool _IsDirty = false;
