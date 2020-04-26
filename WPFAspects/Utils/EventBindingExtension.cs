@@ -27,8 +27,17 @@ namespace WPFAspects.Utils
             this.EventHandlerName = eventHandlerName;
         }
 
+        public EventBindingExtension(string eventHandlerName, DependencyObject source)
+        {
+            this.EventHandlerName = eventHandlerName;
+            this.Source = source;
+        }
+
         [ConstructorArgument("eventHandlerName")]
         public string EventHandlerName { get; set; }
+
+        [ConstructorArgument("Source")]
+        public DependencyObject Source { get; set; }
 
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
@@ -45,7 +54,12 @@ namespace WPFAspects.Utils
             if (_eventInfo == null)
                 throw new InvalidOperationException("The target property must be an event");
 
-            object dataContext = GetDataContext(targetObj);
+            object dataContext = null;
+            if (Source is object)
+                dataContext = GetDataContext(Source);
+            else
+                dataContext = GetDataContext(targetObj);
+
             if (dataContext == null)
             {
                 SubscribeToDataContextChanged(targetObj);
