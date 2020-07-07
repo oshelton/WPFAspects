@@ -101,6 +101,14 @@ namespace WPFAspects.Converters
         public static GenericConverter<double, object> MultiplyDoubleByNegativeOne { get; } =
 			new GenericConverter<double, object>((value, param) => value * -1);
 
+        /// Map null to false; non-null to true.
+        public static GenericConverter<object, object> NullToFalse { get; } =
+            new GenericConverter<object, object>((value, param) => !(value is null), true);
+
+        /// Map null to true; non-null to false.
+        public static GenericConverter<object, object> NullToTrue { get; } =
+            new GenericConverter<object, object>((value, param) => value is null, true);
+
         /// And together visbility values or return visibility.collapsed if all are not visible.
         public static MultiValueGenericConverter<Visibility, object> VisibilityAndOrCollapsed { get; } =
             new MultiValueGenericConverter<Visibility, object>((values, parameter) => values.Any() && values.All(x => x == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed, false, Visibility.Collapsed);
