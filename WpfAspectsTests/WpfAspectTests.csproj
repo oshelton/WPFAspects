@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
 
     <Authors>Owen Shelton</Authors>
     <Product>WPFAspectTests</Product>
@@ -17,7 +17,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>WPFAspectTests</RootNamespace>
     <AssemblyName>WPFAspectTests</AssemblyName>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+		<UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -54,13 +54,6 @@
       <Project>{f1e7e694-fe59-46d5-85de-3e80cef6e73d}</Project>
       <Name>WPFAspects</Name>
     </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
   </ItemGroup>
 
   <ItemGroup>
