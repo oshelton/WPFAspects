@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,43 +15,35 @@ namespace WPFAspects.Controls
 	/// </summary>
 	public class AirspaceOverlay : Decorator
 	{
-		private readonly Window _transparentInputWindow;
-		private Window _parentWindow;
-
 		public AirspaceOverlay()
 		{
-			_transparentInputWindow = CreateTransparentWindow();
-			_transparentInputWindow.PreviewMouseDown += TransparentInputWindow_PreviewMouseDown;
+			m_transparentInputWindow = CreateTransparentWindow();
+			m_transparentInputWindow.PreviewMouseDown += TransparentInputWindow_PreviewMouseDown;
 		}
 
 		public object OverlayChild
 		{
-			get { return _transparentInputWindow.Content; }
-			set { _transparentInputWindow.Content = value; }
+			get { return m_transparentInputWindow.Content; }
+			set { m_transparentInputWindow.Content = value; }
 		}
 
 		private static Window CreateTransparentWindow()
 		{
 			var transparentInputWindow = new Window();
 
-			//Make the window itself transparent, with no style.
+			// Make the window itself transparent, with no style.
 			transparentInputWindow.Background = Brushes.Transparent;
 			transparentInputWindow.AllowsTransparency = true;
 			transparentInputWindow.WindowStyle = WindowStyle.None;
 
-			//Hide from taskbar until it becomes a child
+			// Hide from taskbar until it becomes a child
 			transparentInputWindow.ShowInTaskbar = false;
 
-			//HACK: This window and it's child controls should never have focus, as window styling of an invisible window 
-			//will confuse user.
+			// HACK: This window and it's child controls should never have focus, as window styling of an invisible window
+			// will confuse user.
 			transparentInputWindow.Focusable = false;
 
 			return transparentInputWindow;
-		}
-
-		void TransparentInputWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-		{
-			_parentWindow.Focus();
 		}
 
 		protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
@@ -63,14 +55,14 @@ namespace WPFAspects.Controls
 		protected override void OnRender(DrawingContext drawingContext)
 		{
 			base.OnRender(drawingContext);
-			if (_transparentInputWindow.Visibility != Visibility.Visible)
+			if (m_transparentInputWindow.Visibility != Visibility.Visible)
 			{
 				UpdateOverlaySize();
-				_transparentInputWindow.Show();
-				_parentWindow = GetParentWindow(this);
-				_transparentInputWindow.Owner = _parentWindow;
-				_parentWindow.LocationChanged += ParentWindow_LocationChanged;
-				_parentWindow.SizeChanged += ParentWindow_SizeChanged;
+				m_transparentInputWindow.Show();
+				m_parentWindow = GetParentWindow(this);
+				m_transparentInputWindow.Owner = m_parentWindow;
+				m_parentWindow.LocationChanged += ParentWindow_LocationChanged;
+				m_parentWindow.SizeChanged += ParentWindow_SizeChanged;
 			}
 		}
 
@@ -84,26 +76,25 @@ namespace WPFAspects.Controls
 				return fe as Window;
 			if (fe != null && fe.Parent != null)
 				return GetParentWindow(fe.Parent);
-			throw new ApplicationException("A window parent could not be found for " + o);
+			throw new InvalidOperationException("A window parent could not be found for " + o);
 		}
 
-		private void ParentWindow_LocationChanged(object sender, EventArgs e)
-		{
-			UpdateOverlaySize();
-		}
+		private void TransparentInputWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e) => m_parentWindow.Focus();
 
-		private void ParentWindow_SizeChanged(object sender, SizeChangedEventArgs e)
-		{
-			UpdateOverlaySize();
-		}
+		private void ParentWindow_LocationChanged(object sender, EventArgs e) => UpdateOverlaySize();
+
+		private void ParentWindow_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateOverlaySize();
 
 		private void UpdateOverlaySize()
 		{
 			var hostTopLeft = PointToScreen(new Point(0, 0));
-			_transparentInputWindow.Left = hostTopLeft.X;
-			_transparentInputWindow.Top = hostTopLeft.Y;
-			_transparentInputWindow.Width = ActualWidth;
-			_transparentInputWindow.Height = ActualHeight;
+			m_transparentInputWindow.Left = hostTopLeft.X;
+			m_transparentInputWindow.Top = hostTopLeft.Y;
+			m_transparentInputWindow.Width = ActualWidth;
+			m_transparentInputWindow.Height = ActualHeight;
 		}
+
+		private readonly Window m_transparentInputWindow;
+		private Window m_parentWindow;
 	}
 }

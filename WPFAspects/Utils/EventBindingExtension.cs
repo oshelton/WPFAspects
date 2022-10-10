@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -12,176 +12,159 @@ using System.Windows.Markup;
 
 namespace WPFAspects.Utils
 {
-    /// <summary>
-    /// Class that allows binding XAML events to view model methods.
-    /// </summary>
-    /// <remarks>Code is from here: https://thomaslevesque.com/2011/09/23/wpf-4-5-subscribing-to-an-event-using-a-markup-extension/. </remarks>
-    public class EventBindingExtension : MarkupExtension
-    {
-        private EventInfo _eventInfo;
+	/// <summary>
+	/// Class that allows binding XAML events to view model methods.
+	/// </summary>
+	/// <remarks>Code is from here: https://thomaslevesque.com/2011/09/23/wpf-4-5-subscribing-to-an-event-using-a-markup-extension/. </remarks>
+	public class EventBindingExtension : MarkupExtension
+	{
+		public EventBindingExtension()
+		{
+		}
 
-        public EventBindingExtension() { }
+		public EventBindingExtension(string eventHandlerName)
+		{
+			EventHandlerName = eventHandlerName;
+		}
 
-        public EventBindingExtension(string eventHandlerName)
-        {
-            this.EventHandlerName = eventHandlerName;
-        }
+		public EventBindingExtension(string eventHandlerName, DependencyObject source)
+		{
+			EventHandlerName = eventHandlerName;
+			Source = source;
+		}
 
-        public EventBindingExtension(string eventHandlerName, DependencyObject source)
-        {
-            this.EventHandlerName = eventHandlerName;
-            this.Source = source;
-        }
+		[ConstructorArgument("eventHandlerName")]
+		public string EventHandlerName { get; set; }
 
-        [ConstructorArgument("eventHandlerName")]
-        public string EventHandlerName { get; set; }
+		[ConstructorArgument("Source")]
+		public DependencyObject Source { get; set; }
 
-        [ConstructorArgument("Source")]
-        public DependencyObject Source { get; set; }
+		public override object ProvideValue(IServiceProvider serviceProvider)
+		{
+			if (string.IsNullOrEmpty(EventHandlerName))
+				throw new InvalidOperationException("The EventHandlerName property is not set");
 
-        public override object ProvideValue(IServiceProvider serviceProvider)
-        {
-            if (string.IsNullOrEmpty(EventHandlerName))
-                throw new ArgumentException("The EventHandlerName property is not set", "EventHandlerName");
+			var target = (IProvideValueTarget) serviceProvider.GetService(typeof(IProvideValueTarget));
 
-            var target = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
+			if (target.TargetObject is not DependencyObject targetObj)
+				throw new InvalidOperationException("The target object must be a DependencyObject");
 
-            var targetObj = target.TargetObject as DependencyObject;
-            if (targetObj == null)
-                throw new InvalidOperationException("The target object must be a DependencyObject");
+			m_eventInfo = target.TargetProperty as EventInfo;
+			if (m_eventInfo is null)
+				throw new InvalidOperationException("The target property must be an event");
 
-            _eventInfo = target.TargetProperty as EventInfo;
-            if (_eventInfo == null)
-                throw new InvalidOperationException("The target property must be an event");
+			var dataContext = Source is not null ? GetDataContext(Source) : GetDataContext(targetObj);
+			if (dataContext is null)
+			{
+				SubscribeToDataContextChanged(targetObj);
+				return GetDummyHandler(m_eventInfo.EventHandlerType);
+			}
 
-            object dataContext = null;
-            if (Source is object)
-                dataContext = GetDataContext(Source);
-            else
-                dataContext = GetDataContext(targetObj);
+			var handler = GetHandler(dataContext, m_eventInfo, EventHandlerName);
+			if (handler is null)
+			{
+				Trace.TraceError(
+					"EventBinding: no suitable method named '{0}' found in type '{1}' to handle event '{2'}",
+					EventHandlerName,
+					dataContext.GetType(),
+					m_eventInfo);
+				return GetDummyHandler(m_eventInfo.EventHandlerType);
+			}
 
-            if (dataContext == null)
-            {
-                SubscribeToDataContextChanged(targetObj);
-                return GetDummyHandler(_eventInfo.EventHandlerType);
-            }
+			return handler;
+		}
 
-            var handler = GetHandler(dataContext, _eventInfo, EventHandlerName);
-            if (handler == null)
-            {
-                Trace.TraceError(
-                    "EventBinding: no suitable method named '{0}' found in type '{1}' to handle event '{2'}",
-                    EventHandlerName,
-                    dataContext.GetType(),
-                    _eventInfo);
-                return GetDummyHandler(_eventInfo.EventHandlerType);
-            }
+		private static Delegate GetHandler(object dataContext, EventInfo eventInfo, string eventHandlerName)
+		{
+			var dcType = dataContext.GetType();
 
-            return handler;
+			var method = dcType.GetMethod(
+				eventHandlerName,
+				GetParameterTypes(eventInfo.EventHandlerType));
+			if (method != null)
+			{
+				if (method.IsStatic)
+					return Delegate.CreateDelegate(eventInfo.EventHandlerType, method);
+				else
+					return Delegate.CreateDelegate(eventInfo.EventHandlerType, dataContext, method);
+			}
 
-        }
+			return null;
+		}
 
-        #region Helper methods
+		private static Type[] GetParameterTypes(Type delegateType)
+		{
+			var invokeMethod = delegateType.GetMethod("Invoke");
+			return invokeMethod.GetParameters().Select(p => p.ParameterType).ToArray();
+		}
 
-        static Delegate GetHandler(object dataContext, EventInfo eventInfo, string eventHandlerName)
-        {
-            Type dcType = dataContext.GetType();
+		private static object GetDataContext(DependencyObject target)
+		{
+			return target.GetValue(FrameworkElement.DataContextProperty)
+				?? target.GetValue(FrameworkContentElement.DataContextProperty);
+		}
 
-            var method = dcType.GetMethod(
-                eventHandlerName,
-                GetParameterTypes(eventInfo.EventHandlerType));
-            if (method != null)
-            {
-                if (method.IsStatic)
-                    return Delegate.CreateDelegate(eventInfo.EventHandlerType, method);
-                else
-                    return Delegate.CreateDelegate(eventInfo.EventHandlerType, dataContext, method);
-            }
+		private static Delegate GetDummyHandler(Type eventHandlerType)
+		{
+			Delegate handler;
+			if (!s_dummyHandlers.TryGetValue(eventHandlerType, out handler))
+			{
+				handler = CreateDummyHandler(eventHandlerType);
+				s_dummyHandlers[eventHandlerType] = handler;
+			}
+			return handler;
+		}
 
-            return null;
-        }
+		private static Delegate CreateDummyHandler(Type eventHandlerType)
+		{
+			var parameterTypes = GetParameterTypes(eventHandlerType);
+			var returnType = eventHandlerType.GetMethod("Invoke").ReturnType;
+			var dm = new DynamicMethod("DummyHandler", returnType, parameterTypes);
+			var il = dm.GetILGenerator();
+			if (returnType != typeof(void))
+			{
+				if (returnType.IsValueType)
+				{
+					var local = il.DeclareLocal(returnType);
+					il.Emit(OpCodes.Ldloca_S, local);
+					il.Emit(OpCodes.Initobj, returnType);
+					il.Emit(OpCodes.Ldloc_0);
+				}
+				else
+				{
+					il.Emit(OpCodes.Ldnull);
+				}
+			}
+			il.Emit(OpCodes.Ret);
+			return dm.CreateDelegate(eventHandlerType);
+		}
 
-        static Type[] GetParameterTypes(Type delegateType)
-        {
-            var invokeMethod = delegateType.GetMethod("Invoke");
-            return invokeMethod.GetParameters().Select(p => p.ParameterType).ToArray();
-        }
+		private void SubscribeToDataContextChanged(DependencyObject targetObj) => DependencyPropertyDescriptor
+				.FromProperty(FrameworkElement.DataContextProperty, targetObj.GetType())
+				.AddValueChanged(targetObj, TargetObject_DataContextChanged);
 
-        static object GetDataContext(DependencyObject target)
-        {
-            return target.GetValue(FrameworkElement.DataContextProperty)
-                ?? target.GetValue(FrameworkContentElement.DataContextProperty);
-        }
+		private void UnsubscribeFromDataContextChanged(DependencyObject targetObj) => DependencyPropertyDescriptor
+				.FromProperty(FrameworkElement.DataContextProperty, targetObj.GetType())
+				.RemoveValueChanged(targetObj, TargetObject_DataContextChanged);
 
-        static readonly Dictionary<Type, Delegate> _dummyHandlers = new Dictionary<Type, Delegate>();
+		private void TargetObject_DataContextChanged(object sender, EventArgs e)
+		{
+			if (sender is not DependencyObject targetObj)
+				return;
 
-        static Delegate GetDummyHandler(Type eventHandlerType)
-        {
-            Delegate handler;
-            if (!_dummyHandlers.TryGetValue(eventHandlerType, out handler))
-            {
-                handler = CreateDummyHandler(eventHandlerType);
-                _dummyHandlers[eventHandlerType] = handler;
-            }
-            return handler;
-        }
+			var dataContext = GetDataContext(targetObj);
+			if (dataContext is null)
+				return;
 
-        static Delegate CreateDummyHandler(Type eventHandlerType)
-        {
-            var parameterTypes = GetParameterTypes(eventHandlerType);
-            var returnType = eventHandlerType.GetMethod("Invoke").ReturnType;
-            var dm = new DynamicMethod("DummyHandler", returnType, parameterTypes);
-            var il = dm.GetILGenerator();
-            if (returnType != typeof(void))
-            {
-                if (returnType.IsValueType)
-                {
-                    var local = il.DeclareLocal(returnType);
-                    il.Emit(OpCodes.Ldloca_S, local);
-                    il.Emit(OpCodes.Initobj, returnType);
-                    il.Emit(OpCodes.Ldloc_0);
-                }
-                else
-                {
-                    il.Emit(OpCodes.Ldnull);
-                }
-            }
-            il.Emit(OpCodes.Ret);
-            return dm.CreateDelegate(eventHandlerType);
-        }
+			var handler = GetHandler(dataContext, m_eventInfo, EventHandlerName);
+			if (handler is not null)
+				m_eventInfo.AddEventHandler(targetObj, handler);
 
-        private void SubscribeToDataContextChanged(DependencyObject targetObj)
-        {
-            DependencyPropertyDescriptor
-                .FromProperty(FrameworkElement.DataContextProperty, targetObj.GetType())
-                .AddValueChanged(targetObj, TargetObject_DataContextChanged);
-        }
+			UnsubscribeFromDataContextChanged(targetObj);
+		}
 
-        private void UnsubscribeFromDataContextChanged(DependencyObject targetObj)
-        {
-            DependencyPropertyDescriptor
-                .FromProperty(FrameworkElement.DataContextProperty, targetObj.GetType())
-                .RemoveValueChanged(targetObj, TargetObject_DataContextChanged);
-        }
+		private static readonly Dictionary<Type, Delegate> s_dummyHandlers = new Dictionary<Type, Delegate>();
 
-        private void TargetObject_DataContextChanged(object sender, EventArgs e)
-        {
-            DependencyObject targetObj = sender as DependencyObject;
-            if (targetObj == null)
-                return;
-
-            object dataContext = GetDataContext(targetObj);
-            if (dataContext == null)
-                return;
-
-            var handler = GetHandler(dataContext, _eventInfo, EventHandlerName);
-            if (handler != null)
-            {
-                _eventInfo.AddEventHandler(targetObj, handler);
-            }
-            UnsubscribeFromDataContextChanged(targetObj);
-        }
-
-        #endregion
-    }
+		private EventInfo m_eventInfo;
+	}
 }

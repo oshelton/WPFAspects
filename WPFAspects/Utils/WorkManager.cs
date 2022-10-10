@@ -1,115 +1,104 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-namespace WPFAspects.Utils
+namespace WPFAspects.Utils;
+
+/// <summary>
+/// Static class for managing some scoped and application blocking work.
+/// </summary>
+public static class WorkManager
 {
-    /// <summary>
-    /// Static class for anaging some scoped and application blocking work.
-    /// </summary>
-    public static class WorkManager
-    {
-        /// <summary>
-        /// Simple class for representing scoped work; ie, work that needs to do something when it is done.
-        /// </summary>
-        public sealed class ScopedWork: IDisposable
-        {
-            public ScopedWork(Action workStartsAction, Action workDoneAction)
-            {
-                workStartsAction?.Invoke();
+	/// <summary>
+	/// Whether or not work that is blocking is currently in progress.
+	/// </summary>
+	public static bool IsApplicationBlockingWorkInProgress
+	{
+		get => s_isApplicationBlockingWorkInProgress;
+		set
+		{
+			if (value != s_isApplicationBlockingWorkInProgress)
+			{
+				s_isApplicationBlockingWorkInProgress = value;
+				IsApplicationBlockingWorkInProgressChanged?.Invoke(null, EventArgs.Empty);
+			}
+		}
+	}
 
-                WorkDoneAction = workDoneAction;
-            }
+	/// <summary>
+	/// Title to use for the progress idicator.
+	/// </summary>
+	public static string ApplicationBlockingWorkTitle
+	{
+		get => s_applicationBlockingWorkTitle;
+		set
+		{
+			if (s_applicationBlockingWorkTitle != value)
+			{
+				s_applicationBlockingWorkTitle = value;
+				ApplicationBlockingWorkTitleChanged?.Invoke(null, EventArgs.Empty);
+			}
+		}
+	}
 
-            public void Dispose()
-            {
-                WorkDoneAction?.Invoke();
-            }
-            
-            private readonly Action WorkDoneAction;
-        }
+	/// <summary>
+	/// Start scoped work, should be called in a using ().
+	/// </summary>
+	/// <param name="workStartAction">Work to be done to kick things off.</param>
+	/// <param name="workDoneAction">Work to be done when the scope is left/disposed of.</param>
+	public static ScopedWork StartScopedWork(Action workStartAction, Action workDoneAction)
+	{
+		return new ScopedWork(workStartAction, workDoneAction);
+	}
 
-        private static bool _IsApplicationBlockingWorkInProgress = false;
-        /// <summary>
-        /// Whether or not work that is blocking is currently in progress.
-        /// </summary>
-        public static bool IsApplicationBlockingWorkInProgress
-        {
-            get => _IsApplicationBlockingWorkInProgress;
-            set
-            {
-                if (value != _IsApplicationBlockingWorkInProgress)
-                {
-                    _IsApplicationBlockingWorkInProgress = value;
-                    IsApplicationBlockingWorkInProgressChanged?.Invoke(null, EventArgs.Empty);
-                }
-            }
-        }
+	/// <summary>
+	/// Start application blocking work.
+	/// </summary>
+	public static async Task StartApplicationBlockingWork(Action work, string workTitle)
+	{
+		if (work is null)
+			throw new ArgumentException("work cannot be null", nameof(work));
+		if (string.IsNullOrWhiteSpace(workTitle))
+			throw new ArgumentException("work title cannot be null", nameof(workTitle));
 
-        private static string _ApplicationBlockingWorkTitle;
-        /// <summary>
-        /// Title to use for the progress idicator.
-        /// </summary>
-        public static string ApplicationBlockingWorkTitle
-        {
-            get => _ApplicationBlockingWorkTitle;
-            set
-            {
-                if (_ApplicationBlockingWorkTitle != value)
-                {
-                    _ApplicationBlockingWorkTitle = value;
-                    ApplicationBlockingWorkTitleChanged?.Invoke(null, EventArgs.Empty);
-                }
-            }
-        }
+		if (IsApplicationBlockingWorkInProgress)
+			throw new InvalidOperationException("Application blocking work is already in progress; more cannot be started until this finishes.");
 
-        /// <summary>
-        /// Start scoped work, should be called in a using ().
-        /// </summary>
-        /// <param name="workStartAction">Work to be done to kick things off.</param>
-        /// <param name="workDoneAction">Work to be done when the scope is left/disposed of.</param>
-        /// <returns></returns>
-        public static ScopedWork StartScopedWork(Action workStartAction, Action workDoneAction)
-        {
-            return new ScopedWork(workStartAction, workDoneAction);
-        }
+		IsApplicationBlockingWorkInProgress = true;
+		ApplicationBlockingWorkTitle = workTitle;
 
-        /// <summary>
-        /// Start application blocking work.
-        /// </summary>
-        public static async Task StartApplicationBlockingWork(Action work, string workTitle)
-        {
-            if (IsApplicationBlockingWorkInProgress)
-                throw new InvalidOperationException("Application blocking work is already in progress; more cannot be started until this finishes.");
+		await Task.Run(work).ConfigureAwait(false);
 
-            IsApplicationBlockingWorkInProgress = true;
-            ApplicationBlockingWorkTitle = workTitle;
+		Dispatcher.CurrentDispatcher.Invoke(() => IsApplicationBlockingWorkInProgress = false);
+	}
 
-            await Task.Run(work).ConfigureAwait(false);
+	/// <summary>
+	/// Start application blocking work with a method that returns a Task.
+	/// </summary>
+	public static async Task StartApplicationBlockingWork(Func<Task> work, string workTitle)
+	{
+		if (work is null)
+			throw new ArgumentException("work cannot be null", nameof(work));
+		if (string.IsNullOrWhiteSpace(workTitle))
+			throw new ArgumentException("work title cannot be null", nameof(workTitle));
 
-            Dispatcher.CurrentDispatcher.Invoke(() => IsApplicationBlockingWorkInProgress = false);
-        }
+		if (IsApplicationBlockingWorkInProgress)
+			throw new InvalidOperationException("Application blocking work is already in progress; more cannot be started until this finishes.");
 
-        /// <summary>
-        /// Start application blocking work with a method that returns a Task.
-        /// </summary>
-        public static async Task StartApplicationBlockingWork(Func<Task> work, string workTitle)
-        {
-            if (IsApplicationBlockingWorkInProgress)
-                throw new InvalidOperationException("Application blocking work is already in progress; more cannot be started until this finishes.");
+		IsApplicationBlockingWorkInProgress = true;
+		ApplicationBlockingWorkTitle = workTitle;
 
-            IsApplicationBlockingWorkInProgress = true;
-            ApplicationBlockingWorkTitle = workTitle;
+		await work().ConfigureAwait(false);
 
-            await work();
+		Dispatcher.CurrentDispatcher.Invoke(() => IsApplicationBlockingWorkInProgress = false);
+	}
 
-            Dispatcher.CurrentDispatcher.Invoke(() => IsApplicationBlockingWorkInProgress = false);
-        }
-        
-        public static event EventHandler IsApplicationBlockingWorkInProgressChanged;
-        public static event EventHandler ApplicationBlockingWorkTitleChanged;
-    }
+	public static event EventHandler IsApplicationBlockingWorkInProgressChanged;
+	public static event EventHandler ApplicationBlockingWorkTitleChanged;
+
+	private static bool s_isApplicationBlockingWorkInProgress;
+	private static string s_applicationBlockingWorkTitle;
 }

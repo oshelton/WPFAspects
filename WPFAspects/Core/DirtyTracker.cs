@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,193 +10,193 @@ using WPFAspects.Utils;
 
 namespace WPFAspects.Core
 {
-    /// <summary>
-    /// Simple class for tracking changes to models.
-    /// </summary>
-    /// <remarks>Cannot be used to track collection based properties.</remarks>
-    public class DirtyTracker : Model, IDisposable
-    {
-        public DirtyTracker(Model toTrack)
-        {
-            _TrackedObject = toTrack ?? throw new ArgumentException(nameof(toTrack));
-            TrackedProperties = toTrack.DefaultTrackedProperties;
+	/// <summary>
+	/// Simple class for tracking changes to models.
+	/// </summary>
+	/// <remarks>Cannot be used to track collection based properties.</remarks>
+	public class DirtyTracker : Model, IDisposable
+	{
+		public DirtyTracker(Model toTrack)
+		{
+			TrackedObject = toTrack ?? throw new ArgumentException("toTrack argument may not be null.", nameof(toTrack));
+			TrackedProperties = toTrack.DefaultTrackedProperties;
 
-            AddHandlers();
-        }
+			AddHandlers();
+		}
 
-        public void Dispose()
-        {
-            RemoveHandlers();
-        }
+		public void Dispose()
+		{
+			RemoveHandlers();
+		}
 
-        /// <summary>
-        /// Reset the object to its initial state.
-        /// </summary>
-        public void ResetToInitialState()
-        {
+		/// <summary>
+		/// Reset the object to its initial state.
+		/// </summary>
+		public void ResetToInitialState()
+		{
+			RemoveHandlers();
+			if (m_initialValues.Count != 0)
+			{
+				foreach (var pair in m_initialValues)
+					TrackedObject.SetPropertyValue(pair.Key, pair.Value);
+			}
+			IsDirty = false;
 
-            RemoveHandlers();
-            if (_InitialValues.Count != 0)
-            {
-                foreach (var pair in _InitialValues)
-                    _TrackedObject.SetPropertyValue(pair.Key, pair.Value);
-            }
-            IsDirty = false;
+			foreach (var group in m_trackingGroups.Values)
+				group.IsDirty = false;
+			AddHandlers();
+		}
 
-            foreach (var group in _TrackingGroups.Values)
-                group.IsDirty = false;
-            AddHandlers();
-        }
+		/// <summary>
+		/// Reset the passed in property to its initial value.
+		/// </summary>
+		public void ResetPropertyToInitialSTate(string propertyName)
+		{
+			if (string.IsNullOrWhiteSpace(propertyName))
+				throw new ArgumentException(propertyName);
 
-        /// <summary>
-        /// Reset the passed in property to its initial value.
-        /// </summary>
-        public void ResetPropertyToInitialSTate(string propertyName)
-        {
-            if (string.IsNullOrWhiteSpace(propertyName))
-                throw new ArgumentException(propertyName);
+			if (m_initialValues.TryGetValue(propertyName, out object initial))
+				TrackedObject.SetPropertyValue(propertyName, initial);
+		}
 
-            if (_InitialValues.TryGetValue(propertyName, out object initial))
-                TrackedObject.SetPropertyValue(propertyName, initial);
-        }
+		/// <summary>
+		/// Set the current state of the object as the initial state.
+		/// </summary>
+		public void SetInitialState()
+		{
+			m_initialValues.Clear();
+			m_newValues.Clear();
 
-        /// <summary>
-        /// Set the current state of the object as the initial state.
-        /// </summary>
-        public void SetInitialState()
-        {
-            _InitialValues.Clear();
-            _NewValues.Clear();
+			foreach (var group in m_trackingGroups.Values)
+				group.IsDirty = false;
 
-            foreach (var group in _TrackingGroups.Values)
-                group.IsDirty = false;
+			IsDirty = false;
+		}
 
-            IsDirty = false;
-        }
+		/// <summary>
+		/// Get whether or not the passed in property has changed.
+		/// </summary>
+		public bool IsPropertyDirty(string propertyName)
+		{
+			return m_newValues.ContainsKey(propertyName);
+		}
 
-        /// <summary>
-        /// Get whether or not the passed in property has changed.
-        /// </summary>
-        public bool IsPropertyDirty(string propertyName)
-        {
-            return _NewValues.ContainsKey(propertyName);
-        }
+		/// <summary>
+		/// Get the initial value for the property whose name is passed in.
+		/// </summary>
+		public object GetInitialValueForProperty(string propertyName)
+		{
+			if (string.IsNullOrWhiteSpace(propertyName))
+				throw new ArgumentException(propertyName);
 
-        /// <summary>
-        /// Get the initial value for the property whose name is passed in.
-        /// </summary>
-        public object GetInitialValueForProperty(string propertyName)
-        {
-            if (string.IsNullOrWhiteSpace(propertyName))
-                throw new ArgumentException(propertyName);
+			return m_initialValues.TryGetValue(propertyName, out object initial) ? initial : null;
+		}
 
-            return _InitialValues.TryGetValue(propertyName, out object initial) ? initial : null; 
-        }
+		public DirtyTrackingGroup CreateDirtyTrackingGroup(string groupName, params string[] propertiesForGroup)
+		{
+			var newGroup = new DirtyTrackingGroup(groupName, propertiesForGroup);
+			m_trackingGroups.Add(groupName, newGroup);
 
-        public DirtyTrackingGroup CreateDirtyTrackingGroup(string groupName, params string[] propertiesForGroup)
-        {
-            var newGroup = new DirtyTrackingGroup(groupName, propertiesForGroup);
-            _TrackingGroups.Add(groupName, newGroup);
+			if (propertiesForGroup.Any(p => m_newValues.ContainsKey(p)))
+				newGroup.IsDirty = true;
 
-            if (propertiesForGroup.Any(p => _NewValues.ContainsKey(p)))
-                newGroup.IsDirty = true;
+			return newGroup;
+		}
 
-            return newGroup;
-        }
+		/// <summary>
+		/// Add the necessary event handlers.
+		/// </summary>
+		private void AddHandlers()
+		{
+			TrackedObject.PropertyChangingFromValue += OnTrackedObjectPropertyChanging;
+			TrackedObject.PropertyChangedToValue += OnTrackedObjectPropertyChanged;
+		}
 
-        /// <summary>
-        /// Add the necessary event handlers.
-        /// </summary>
-        private void AddHandlers()
-        {
-            _TrackedObject.PropertyChangingFromValue += OnTrackedObjectPropertyChanging;
-            _TrackedObject.PropertyChangedToValue += OnTrackedObjectPropertyChanged;
-        }
+		/// <summary>
+		/// Remove the event handlers.
+		/// </summary>
+		private void RemoveHandlers()
+		{
+			TrackedObject.PropertyChangingFromValue -= OnTrackedObjectPropertyChanging;
+			TrackedObject.PropertyChangedToValue -= OnTrackedObjectPropertyChanged;
+		}
 
-        /// <summary>
-        /// Remove the event handlers.
-        /// </summary>
-        private void RemoveHandlers()
-        {
-            _TrackedObject.PropertyChangingFromValue -= OnTrackedObjectPropertyChanging;
-            _TrackedObject.PropertyChangedToValue -= OnTrackedObjectPropertyChanged;
-        }
+		private void OnTrackedObjectPropertyChanging(object sender, PropertyChangingWithValueEventArgs args)
+		{
+			if ((args.PreviousValue is string || (args.PreviousValue as IEnumerable) == null) && !m_initialValues.ContainsKey(args.PropertyName))
+				m_initialValues.Add(args.PropertyName, args.PreviousValue);
+		}
 
-        private void OnTrackedObjectPropertyChanging(object sender, PropertyChangingWithValueEventArgs args)
-        {
-            if ((args.PreviousValue is string || (args.PreviousValue as IEnumerable) == null) && !_InitialValues.ContainsKey(args.PropertyName))
-                _InitialValues.Add(args.PropertyName, args.PreviousValue);
-        }
+		private void OnTrackedObjectPropertyChanged(object sender, PropertyChangedWithValueEventArgs args)
+		{
+			if ((TrackedProperties.Count == 0 || TrackedProperties.Contains(args.PropertyName)) && (args.NewValue is string || !(args.NewValue is IEnumerable)))
+			{
+				if (!Equals(m_initialValues[args.PropertyName], args.NewValue))
+				{
+					m_newValues[args.PropertyName] = args.NewValue;
 
-        private void OnTrackedObjectPropertyChanged(object sender, PropertyChangedWithValueEventArgs args)
-        {
-            if ((TrackedProperties.Count == 0 || TrackedProperties.Contains(args.PropertyName)) && (args.NewValue is string || !(args.NewValue is IEnumerable)))
-            {
-                if (!Equals(_InitialValues[args.PropertyName], args.NewValue))
-                {
-                    _NewValues[args.PropertyName] = args.NewValue;
+					foreach (var group in m_trackingGroups.Values)
+					{
+						if (group.TracksProperties.Any(p => p == args.PropertyName))
+							group.IsDirty = true;
+					}
+				}
+				else
+				{
+					m_initialValues.Remove(args.PropertyName);
+					m_newValues.Remove(args.PropertyName);
 
-                    foreach (var group in _TrackingGroups.Values)
-                    {
-                        if (group.TracksProperties.Any(p => p == args.PropertyName))
-                            group.IsDirty = true;
-                    }
-                }
-                else
-                {
-                    _InitialValues.Remove(args.PropertyName);
-                    _NewValues.Remove(args.PropertyName);
+					foreach (var group in m_trackingGroups.Values)
+					{
+						if (!group.TracksProperties.Any(p => m_newValues.ContainsKey(p)))
+							group.IsDirty = false;
+					}
+				}
 
-                    foreach (var group in _TrackingGroups.Values)
-                    {
-                        if (!group.TracksProperties.Any(p => _NewValues.ContainsKey(p)))
-                            group.IsDirty = false;
-                    }
-                }
+				if (m_newValues.Count != 0)
+					IsDirty = true;
+				else
+					IsDirty = false;
+			}
+		}
 
-                if (_NewValues.Count != 0)
-                    IsDirty = true;
-                else
-                    IsDirty = false;
-            }
-        }
+		public Model TrackedObject { get; }
 
-        private Model _TrackedObject = null;
-        public Model TrackedObject => _TrackedObject;
+		/// <summary>
+		/// Get/Set the properties changes to should be ignored.
+		/// </summary>
+		/// <remarks>Defaults to Model.DefaultTrackedProperties.</remarks>
+		public HashSet<string> TrackedProperties
+		{
+			get => m_trackedProperties;
+			set => m_trackedProperties = value ?? throw new ArgumentException("Value cannot be null.");
+		}
 
-        private HashSet<string> _TrackedProperties = null;
-        /// <summary>
-        /// Get/Set the properties changes to should be ignored.
-        /// </summary>
-        /// <remarks>Defaults to Model.DefaultTrackedProperties.</remarks>
-        public HashSet<string> TrackedProperties
-        {
-            get => _TrackedProperties;
-            set => _TrackedProperties = value ?? throw new ArgumentException("Value cannot be null.");
-        }
+		/// <summary>
+		/// Get whether or not the tracked object is dirty (has changes).
+		/// </summary>
+		public bool IsDirty
+		{
+			get => CheckIsOnMainThread(m_isDirty);
+			set => SetPropertyBackingValue(value, ref m_isDirty);
+		}
 
-        private bool _IsDirty = false;
-        /// <summary>
-        /// Get whether or not the tracked object is dirty (has changes).
-        /// </summary>
-        public bool IsDirty
-        {
-            get => CheckIsOnMainThread(_IsDirty);
-            set => SetPropertyBackingValue(value, ref _IsDirty);
-        }
+		/// <summary>
+		/// Initial property values of the object, keyed by name.
+		/// </summary>
+		private readonly Dictionary<string, object> m_initialValues = new Dictionary<string, object>();
 
-        /// <summary>
-        /// Initial property values of the object, keyed by name.
-        /// </summary>
-        private readonly Dictionary<string, object> _InitialValues = new Dictionary<string, object>();
-        /// <summary>
-        /// New values for properties of the object, keyed by name.
-        /// </summary>
-        private readonly Dictionary<string, object> _NewValues = new Dictionary<string, object>();
+		/// <summary>
+		/// New values for properties of the object, keyed by name.
+		/// </summary>
+		private readonly Dictionary<string, object> m_newValues = new Dictionary<string, object>();
 
-        /// <summary>
-        /// Dictionary for keeping track of property tracking groups.
-        /// </summary>
-        private readonly Dictionary<string, DirtyTrackingGroup> _TrackingGroups = new Dictionary<string, DirtyTrackingGroup>();
-    }
+		/// <summary>
+		/// Dictionary for keeping track of property tracking groups.
+		/// </summary>
+		private readonly Dictionary<string, DirtyTrackingGroup> m_trackingGroups = new Dictionary<string, DirtyTrackingGroup>();
+
+		private bool m_isDirty;
+		private HashSet<string> m_trackedProperties;
+	}
 }

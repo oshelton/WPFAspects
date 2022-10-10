@@ -1,141 +1,139 @@
-﻿using Xunit;
 using WPFAspects.Core;
+using Xunit;
 
 namespace UtilTests
 {
-    public class DirtyTrackerTests
-    {
-        private class TestModel : Model
-        {
-            public TestModel() : base() { }
+	public class DirtyTrackerTests
+	{
+		private sealed class TestModel : Model
+		{
+			public string PropertyOne
+			{
+				get => CheckIsOnMainThread(m_propertyOne);
+				set => SetPropertyBackingValue(value, ref m_propertyOne);
+			}
 
-            private string _PropertyOne = null;
-            public string PropertyOne
-            {
-                get => CheckIsOnMainThread(_PropertyOne);
-                set => SetPropertyBackingValue(value, ref _PropertyOne);
-            }
+			public string PropertyTwo
+			{
+				get => CheckIsOnMainThread(m_propertyTwo);
+				set => SetPropertyBackingValue(value, ref m_propertyTwo);
+			}
 
-            private string _PropertyTwo = null;
-            public string PropertyTwo
-            {
-                get => CheckIsOnMainThread(_PropertyTwo);
-                set => SetPropertyBackingValue(value, ref _PropertyTwo); 
-            }
-        }
-        
-        [Fact]
-        public void TestBasicTracking()
-        {
-            var testModel = new TestModel();
-            var tracker = new DirtyTracker(testModel);
+			private string m_propertyOne;
+			private string m_propertyTwo;
+		}
 
-            Assert.False(tracker.IsDirty);
+		[Fact]
+		public void TestBasicTracking()
+		{
+			var testModel = new TestModel();
+			var tracker = new DirtyTracker(testModel);
 
-            testModel.PropertyOne = "Hello!";
+			Assert.False(tracker.IsDirty);
 
-            Assert.True(tracker.IsDirty);
-        }
+			testModel.PropertyOne = "Hello!";
 
-        [Fact]
-        public void TestObjectReset()
-        {
-            var testModel = new TestModel();
-            var tracker = new DirtyTracker(testModel);
+			Assert.True(tracker.IsDirty);
+		}
 
-            Assert.False(tracker.IsDirty);
+		[Fact]
+		public void TestObjectReset()
+		{
+			var testModel = new TestModel();
+			var tracker = new DirtyTracker(testModel);
 
-            testModel.PropertyOne = "Hello!";
+			Assert.False(tracker.IsDirty);
 
-            Assert.True(tracker.IsDirty);
+			testModel.PropertyOne = "Hello!";
 
-            tracker.ResetToInitialState();
+			Assert.True(tracker.IsDirty);
 
-            Assert.False(tracker.IsDirty);
-            Assert.Null(testModel.PropertyOne);
+			tracker.ResetToInitialState();
 
-            testModel.PropertyOne = "Hi!";
-            tracker.SetInitialState();
+			Assert.False(tracker.IsDirty);
+			Assert.Null(testModel.PropertyOne);
 
-            Assert.Equal("Hi!", testModel.PropertyOne);
-            Assert.False(false);
-        }
+			testModel.PropertyOne = "Hi!";
+			tracker.SetInitialState();
 
-        [Fact]
-        public void TestPropertyReset()
-        {
-            var testModel = new TestModel();
-            var tracker = new DirtyTracker(testModel);
+			Assert.Equal("Hi!", testModel.PropertyOne);
+			Assert.False(false);
+		}
 
-            Assert.False(tracker.IsDirty);
+		[Fact]
+		public void TestPropertyReset()
+		{
+			var testModel = new TestModel();
+			var tracker = new DirtyTracker(testModel);
 
-            testModel.PropertyOne = "Hello!";
-            testModel.PropertyTwo = "Prop 2";
+			Assert.False(tracker.IsDirty);
 
-            Assert.True(tracker.IsDirty);
+			testModel.PropertyOne = "Hello!";
+			testModel.PropertyTwo = "Prop 2";
 
-            tracker.ResetPropertyToInitialSTate(nameof(TestModel.PropertyOne));
+			Assert.True(tracker.IsDirty);
 
-            Assert.False(tracker.IsPropertyDirty(nameof(TestModel.PropertyOne)));
-            Assert.True(tracker.IsPropertyDirty(nameof(TestModel.PropertyTwo)));
-            Assert.True(tracker.IsDirty);
-            Assert.Null(testModel.PropertyOne);
-            Assert.Equal("Prop 2", testModel.PropertyTwo);
+			tracker.ResetPropertyToInitialSTate(nameof(TestModel.PropertyOne));
 
-            tracker.ResetPropertyToInitialSTate(nameof(TestModel.PropertyTwo));
+			Assert.False(tracker.IsPropertyDirty(nameof(TestModel.PropertyOne)));
+			Assert.True(tracker.IsPropertyDirty(nameof(TestModel.PropertyTwo)));
+			Assert.True(tracker.IsDirty);
+			Assert.Null(testModel.PropertyOne);
+			Assert.Equal("Prop 2", testModel.PropertyTwo);
 
-            Assert.False(tracker.IsDirty);
-            Assert.Null(testModel.PropertyOne);
-            Assert.Null(testModel.PropertyTwo);
-        }
+			tracker.ResetPropertyToInitialSTate(nameof(TestModel.PropertyTwo));
 
-        [Fact]
-        public void TestPropertyGroups()
-        {
-            var testModel = new TestModel();
-            var tracker = new DirtyTracker(testModel);
+			Assert.False(tracker.IsDirty);
+			Assert.Null(testModel.PropertyOne);
+			Assert.Null(testModel.PropertyTwo);
+		}
 
-            var group1 = tracker.CreateDirtyTrackingGroup("group", nameof(TestModel.PropertyOne));
+		[Fact]
+		public void TestPropertyGroups()
+		{
+			var testModel = new TestModel();
+			var tracker = new DirtyTracker(testModel);
 
-            testModel.PropertyOne = "New Value";
+			var group1 = tracker.CreateDirtyTrackingGroup("group", nameof(TestModel.PropertyOne));
 
-            Assert.True(group1.IsDirty);
-            Assert.True(tracker.IsDirty);
+			testModel.PropertyOne = "New Value";
 
-            testModel.PropertyTwo = "Other Value";
+			Assert.True(group1.IsDirty);
+			Assert.True(tracker.IsDirty);
 
-            Assert.True(group1.IsDirty);
-            Assert.True(tracker.IsDirty);
+			testModel.PropertyTwo = "Other Value";
 
-            testModel.PropertyOne = null;
+			Assert.True(group1.IsDirty);
+			Assert.True(tracker.IsDirty);
 
-            Assert.False(group1.IsDirty);
-            Assert.True(tracker.IsDirty);
+			testModel.PropertyOne = null;
 
-            testModel.PropertyTwo = null;
+			Assert.False(group1.IsDirty);
+			Assert.True(tracker.IsDirty);
 
-            Assert.False(group1.IsDirty);
-            Assert.False(tracker.IsDirty);
-        }
+			testModel.PropertyTwo = null;
 
-        [Fact]
-        public void TestResetPropertyGroups()
-        {
-            var testModel = new TestModel();
-            var tracker = new DirtyTracker(testModel);
+			Assert.False(group1.IsDirty);
+			Assert.False(tracker.IsDirty);
+		}
 
-            var group1 = tracker.CreateDirtyTrackingGroup("group", nameof(TestModel.PropertyOne));
+		[Fact]
+		public void TestResetPropertyGroups()
+		{
+			var testModel = new TestModel();
+			var tracker = new DirtyTracker(testModel);
 
-            testModel.PropertyOne = "New Value";
+			var group1 = tracker.CreateDirtyTrackingGroup("group", nameof(TestModel.PropertyOne));
 
-            Assert.True(group1.IsDirty);
-            Assert.True(tracker.IsDirty);
+			testModel.PropertyOne = "New Value";
 
-            tracker.ResetToInitialState();
+			Assert.True(group1.IsDirty);
+			Assert.True(tracker.IsDirty);
 
-            Assert.False(group1.IsDirty);
-            Assert.False(tracker.IsDirty);
-            
-        }
-    }
+			tracker.ResetToInitialState();
+
+			Assert.False(group1.IsDirty);
+			Assert.False(tracker.IsDirty);
+		}
+	}
 }

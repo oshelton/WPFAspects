@@ -1,7 +1,7 @@
-﻿/*
+/*
  * Copyright 2017 Jack owen Shelton
  * Licensed under the terms of the MIT license.
- * Part of the WPFAspects project. 
+ * Part of the WPFAspects project.
  */
 using System;
 using System.Collections.Generic;
@@ -11,88 +11,81 @@ using System.Threading.Tasks;
 
 namespace WPFAspects.Validation.Rules
 {
-    ///Base class for validation rules; should not be used directly.
-    ///<remarks>
-    ///Validation rule implementation classes should inherit from Rule T,U and not this class.
-    ///</remarks>
-    public abstract class Rule<T> where T : Core.Model
-    {
-        ///Constructor; just sets what property the rule is for.
-        public Rule(string forProperty)
-        {
-            ForProperty = forProperty;
-        }
+	/// Base class for validation rules; should not be used directly.
+	/// <remarks>
+	/// Validation rule implementation classes should inherit from Rule T,U and not this class.
+	/// </remarks>
+	public abstract class Rule<TValue>
+		where TValue : Core.Model
+	{
+		// Constructor; just sets what property the rule is for.
+		protected Rule(string forProperty)
+		{
+			ForProperty = forProperty;
+		}
 
-        ///Property the rule is for.
-        public string ForProperty { get; private set; }
+		// Property the rule is for.
+		public string ForProperty { get; init; }
 
-        ///Indicate when the validation rule applies.
-        public Rule<T> AppliesWhen(Func<T, bool> func)
-        {
-            if (_AppliesWhenFunction != null)
-                throw new InvalidOperationException("This validation rule already has an applies when function.");
+		// Indicate when the validation rule applies.
+		public Rule<TValue> AppliesWhen(Func<TValue, bool> func)
+		{
+			if (m_appliesWhenFunction is not null)
+				throw new InvalidOperationException("This validation rule already has an applies when function.");
 
-            _AppliesWhenFunction = func;
+			m_appliesWhenFunction = func;
 
-            return this;
-        }
+			return this;
+		}
 
-        ///Get whether or not the rule currently applies.
-        public bool RuleApplies(T toValidate)
-        {
-            return _AppliesWhenFunction?.Invoke(toValidate) ?? true;
-        }
+		// Get whether or not the rule currently applies.
+		public bool RuleApplies(TValue toValidate) => m_appliesWhenFunction?.Invoke(toValidate) ?? true;
 
-        ///Set the message to be displayed when validation fails.
-        public Rule<T> WithOnFailMessage(string message)
-        {
-            return WithOnFailMessage((T t) => message);
-        }
-        ///Set the message to be displayed when validation fails.
-        public Rule<T> WithOnFailMessage(Func<T, string> failMessageFunc)
-        {
-            if (_OnFailMessage != null)
-                throw new InvalidOperationException("This validation rule already has a failure message.");
+		// Set the message to be displayed when validation fails.
+		public Rule<TValue> WithOnFailMessage(string message) => WithOnFailMessage((TValue t) => message);
 
-            _OnFailMessage = failMessageFunc;
+		// Set the message to be displayed when validation fails.
+		public Rule<TValue> WithOnFailMessage(Func<TValue, string> failMessageFunc)
+		{
+			if (m_onFailMessage != null)
+				throw new InvalidOperationException("This validation rule already has a failure message.");
 
-            return this;
-        }
+			m_onFailMessage = failMessageFunc;
 
-        ///Add another property to check this rule on.
-        public Rule<T> AlsoCheckOn(string otherProperty)
-        {
-            _AlsoCheckOnProperties.Add(otherProperty);
+			return this;
+		}
 
-            return this;
-        }
+		// Add another property to check this rule on.
+		public Rule<TValue> AlsoCheckOn(string otherProperty)
+		{
+			m_alsoCheckOnProperties.Add(otherProperty);
 
-        ///Get whether or not this rule should be checked when the passed in property changes.
-        public bool RuleShouldBeCheckedOnChanged(string otherProperty)
-        {
-            return _AlsoCheckOnProperties.Contains(otherProperty);
-        }
+			return this;
+		}
 
-        ///Check the rule's logic.
-        public string CheckRule(T toValidate, object value)
-        {
-            if (_OnFailMessage == null)
-                throw new InvalidOperationException("Validation rule must have failure message assigned to it.");
+		// Get whether or not this rule should be checked when the passed in property changes.
+		public bool RuleShouldBeCheckedOnChanged(string otherProperty) => m_alsoCheckOnProperties.Contains(otherProperty);
 
-            return PerformRuleLogic(toValidate, value) ? null : _OnFailMessage(toValidate);
-        }
+		// Check the rule's logic.
+		public string CheckRule(TValue toValidate, object value)
+		{
+			if (m_onFailMessage == null)
+				throw new InvalidOperationException("Validation rule must have failure message assigned to it.");
 
-        ///Method that implements the validation logic for this validation rule.
-        ///<remarks>True indicates that the rule passes; false indicates failure.</remarks>
-        protected abstract bool PerformRuleLogic(T toValidate, object value);
+			return PerformRuleLogic(toValidate, value) ? null : m_onFailMessage(toValidate);
+		}
 
-        ///Function invoked to generate the validation failed message.
-        private Func<T, string> _OnFailMessage = null;
+		// Method that implements the validation logic for this validation rule.
+		// <remarks>True indicates that the rule passes; false indicates failure.</remarks>
+		protected abstract bool PerformRuleLogic(TValue toValidate, object value);
 
-        ///Function defining when this function applies.
-        private Func<T, bool> _AppliesWhenFunction = null;
+		// Function invoked to generate the validation failed message.
+		private Func<TValue, string> m_onFailMessage;
 
-        ///List of other properties on the validated object that should trigger this rule when they change.
-        private HashSet<string> _AlsoCheckOnProperties = new HashSet<string>();
-    }
+		// Function defining when this function applies.
+		private Func<TValue, bool> m_appliesWhenFunction;
+
+		// List of other properties on the validated object that should trigger this rule when they change.
+		private readonly HashSet<string> m_alsoCheckOnProperties = new HashSet<string>();
+	}
 }

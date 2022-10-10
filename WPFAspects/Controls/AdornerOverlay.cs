@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,13 +15,14 @@ namespace WPFAspects.Controls
 	/// </summary>
 	/// <example>
 	/// <aspects:AdornerOverlay>
-	///		<ListBox />
-	/// 	<aspects:AdornerOverlay.OverlayContent>
-	///			<TextBlock VerticalAlignment = "Center" HorizontalAlignment="Center">Loading!</TextBlock>
-	///		</aspects:AdornerOverlay.OverlayContent>
+	/// 		<ListBox />
+	///			<aspects:AdornerOverlay.OverlayContent>
+	/// 			<TextBlock VerticalAlignment = "Center" HorizontalAlignment="Center">Loading!</TextBlock>
+	/// 		</aspects:AdornerOverlay.OverlayContent>
 	/// </aspects:AdornerOverlay>
 	/// </example>
 	[TemplatePart(Name = "PART_OverlayAdorner", Type = typeof(AdornerDecorator))]
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1004:Documentation lines should begin with single space", Justification = "Example coide.")]
 	public class AdornerOverlay : ContentControl
 	{
 		public static readonly DependencyProperty OverlayContentProperty =
@@ -32,59 +33,47 @@ namespace WPFAspects.Controls
 			DependencyProperty.Register("IsOverlayContentVisible", typeof(bool), typeof(AdornerOverlay),
 			new FrameworkPropertyMetadata(new PropertyChangedCallback(OnIsOverlayContentVisibleChanged)));
 
-		private UIElementAdorner m_adorner;
-
-		static AdornerOverlay()
-		{
-			DefaultStyleKeyProperty.OverrideMetadata(typeof(AdornerOverlay), new FrameworkPropertyMetadata(typeof(AdornerOverlay)));
-		}
+		static AdornerOverlay() => DefaultStyleKeyProperty.OverrideMetadata(typeof(AdornerOverlay), new FrameworkPropertyMetadata(typeof(AdornerOverlay)));
 
 		[Category("Overlay")]
 		public UIElement OverlayContent
 		{
-			get { return (UIElement)GetValue(OverlayContentProperty); }
-			set { SetValue(OverlayContentProperty, value); }
+			get => (UIElement) GetValue(OverlayContentProperty);
+			set => SetValue(OverlayContentProperty, value);
 		}
 
 		[Category("Overlay")]
 		public bool IsOverlayContentVisible
 		{
-			get { return (bool)GetValue(IsOverlayContentVisibleProperty); }
-			set { SetValue(IsOverlayContentVisibleProperty, value); }
+			get => (bool) GetValue(IsOverlayContentVisibleProperty);
+			set => SetValue(IsOverlayContentVisibleProperty, value);
 		}
 
 		private static void OnOverlayContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			AdornerOverlay overlay = d as AdornerOverlay;
-			if (overlay != null)
+			var overlay = d as AdornerOverlay;
+			if (overlay is not null && overlay.IsOverlayContentVisible)
 			{
-				if (overlay.IsOverlayContentVisible)
-				{
-					overlay.RemoveOverlayContent();
-					overlay.AddOverlayContent();
-				}
+				overlay.RemoveOverlayContent();
+				overlay.AddOverlayContent();
 			}
 		}
 
 		private static void OnIsOverlayContentVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			AdornerOverlay overlay = d as AdornerOverlay;
-			if (overlay != null)
+			var overlay = d as AdornerOverlay;
+			if (overlay is not null)
 			{
-				if ((bool)e.NewValue)
-				{
+				if ((bool) e.NewValue)
 					overlay.AddOverlayContent();
-				}
 				else
-				{
 					overlay.RemoveOverlayContent();
-				}
 			}
 		}
 
 		private void AddOverlayContent()
 		{
-			if (OverlayContent != null)
+			if (OverlayContent is not null)
 			{
 				m_adorner = new UIElementAdorner(this, OverlayContent);
 				m_adorner.Add();
@@ -96,7 +85,7 @@ namespace WPFAspects.Controls
 
 		private void RemoveOverlayContent()
 		{
-			if (m_adorner != null)
+			if (m_adorner is not null)
 			{
 				AdornerLayer parentAdorner = AdornerLayer.GetAdornerLayer(this);
 				parentAdorner.Remove(m_adorner);
@@ -106,13 +95,10 @@ namespace WPFAspects.Controls
 			}
 		}
 
-		#region Class UIElementAdorner
+		private UIElementAdorner m_adorner;
 
 		private class UIElementAdorner : Adorner
 		{
-			private List<UIElement> m_logicalChildren;
-			private UIElement m_element;
-
 			public UIElementAdorner(UIElement adornedElement, UIElement element)
 				: base(adornedElement)
 			{
@@ -121,14 +107,14 @@ namespace WPFAspects.Controls
 
 			public void Add()
 			{
-				base.AddLogicalChild(m_element);
-				base.AddVisualChild(m_element);
+				AddLogicalChild(m_element);
+				AddVisualChild(m_element);
 			}
 
 			public void Remove()
 			{
-				base.RemoveLogicalChild(m_element);
-				base.RemoveVisualChild(m_element);
+				RemoveLogicalChild(m_element);
+				RemoveVisualChild(m_element);
 			}
 
 			protected override Size MeasureOverride(Size constraint)
@@ -139,21 +125,18 @@ namespace WPFAspects.Controls
 
 			protected override Size ArrangeOverride(Size finalSize)
 			{
-				Point location = new Point(0, 0);
-				Rect rect = new Rect(location, finalSize);
+				var location = new Point(0, 0);
+				var rect = new Rect(location, finalSize);
 				m_element.Arrange(rect);
 				return finalSize;
 			}
 
-			protected override int VisualChildrenCount
-			{
-				get { return 1; }
-			}
+			protected override int VisualChildrenCount => 1;
 
 			protected override Visual GetVisualChild(int index)
 			{
 				if (index != 0)
-					throw new ArgumentOutOfRangeException("index");
+					throw new ArgumentOutOfRangeException(nameof(index));
 
 				return m_element;
 			}
@@ -162,17 +145,21 @@ namespace WPFAspects.Controls
 			{
 				get
 				{
-					if (m_logicalChildren == null)
+					if (m_logicalChildren is null)
 					{
-						m_logicalChildren = new List<UIElement>();
-						m_logicalChildren.Add(m_element);
+						m_logicalChildren = new List<UIElement>
+						{
+							m_element,
+						};
 					}
 
 					return m_logicalChildren.GetEnumerator();
 				}
 			}
-		}
 
-		#endregion
+			private readonly UIElement m_element;
+
+			private List<UIElement> m_logicalChildren;
+		}
 	}
 }
