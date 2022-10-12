@@ -26,7 +26,7 @@ namespace WPFAspects.Core
 		public IReadOnlyList<string> GetErrorsList(string propertyName)
 		{
 			if (string.IsNullOrWhiteSpace(propertyName))
-				throw new ArgumentException(propertyName);
+				throw new ArgumentNullException(propertyName);
 
 			return Validator?.GetErrorsForProperty(propertyName) ?? new List<string>();
 		}

@@ -18,7 +18,7 @@ namespace WPFAspects.Converters
 	{
 		public GenericConverter(Func<TValue, TParameter, object> converterFunction, bool passThroughNull = false, object defaultValue = null)
 		{
-			m_converterFunction = converterFunction ?? throw new ArgumentException("ConverterFunction cannot be null.", nameof(converterFunction));
+			m_converterFunction = converterFunction ?? throw new ArgumentNullException(nameof(converterFunction));
 
 			m_passThroughNull = passThroughNull;
 			if (defaultValue == null)

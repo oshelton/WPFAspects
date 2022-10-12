@@ -60,9 +60,9 @@ public static class WorkManager
 	public static async Task StartApplicationBlockingWork(Action work, string workTitle)
 	{
 		if (work is null)
-			throw new ArgumentException("work cannot be null", nameof(work));
+			throw new ArgumentNullException(nameof(work));
 		if (string.IsNullOrWhiteSpace(workTitle))
-			throw new ArgumentException("work title cannot be null", nameof(workTitle));
+			throw new ArgumentNullException(nameof(workTitle));
 
 		if (IsApplicationBlockingWorkInProgress)
 			throw new InvalidOperationException("Application blocking work is already in progress; more cannot be started until this finishes.");
@@ -81,9 +81,9 @@ public static class WorkManager
 	public static async Task StartApplicationBlockingWork(Func<Task> work, string workTitle)
 	{
 		if (work is null)
-			throw new ArgumentException("work cannot be null", nameof(work));
+			throw new ArgumentNullException(nameof(work));
 		if (string.IsNullOrWhiteSpace(workTitle))
-			throw new ArgumentException("work title cannot be null", nameof(workTitle));
+			throw new ArgumentNullException(nameof(workTitle));
 
 		if (IsApplicationBlockingWorkInProgress)
 			throw new InvalidOperationException("Application blocking work is already in progress; more cannot be started until this finishes.");

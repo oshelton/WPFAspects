@@ -18,7 +18,7 @@ namespace WPFAspects.Core
 	{
 		public DirtyTracker(Model toTrack)
 		{
-			TrackedObject = toTrack ?? throw new ArgumentException("toTrack argument may not be null.", nameof(toTrack));
+			TrackedObject = toTrack ?? throw new ArgumentNullException(nameof(toTrack));
 			TrackedProperties = toTrack.DefaultTrackedProperties;
 
 			AddHandlers();
@@ -53,7 +53,7 @@ namespace WPFAspects.Core
 		public void ResetPropertyToInitialSTate(string propertyName)
 		{
 			if (string.IsNullOrWhiteSpace(propertyName))
-				throw new ArgumentException(propertyName);
+				throw new ArgumentNullException(propertyName);
 
 			if (m_initialValues.TryGetValue(propertyName, out object initial))
 				TrackedObject.SetPropertyValue(propertyName, initial);
@@ -87,7 +87,7 @@ namespace WPFAspects.Core
 		public object GetInitialValueForProperty(string propertyName)
 		{
 			if (string.IsNullOrWhiteSpace(propertyName))
-				throw new ArgumentException(propertyName);
+				throw new ArgumentNullException(propertyName);
 
 			return m_initialValues.TryGetValue(propertyName, out object initial) ? initial : null;
 		}
@@ -169,7 +169,7 @@ namespace WPFAspects.Core
 		public HashSet<string> TrackedProperties
 		{
 			get => m_trackedProperties;
-			set => m_trackedProperties = value ?? throw new ArgumentException("Value cannot be null.");
+			set => m_trackedProperties = value ?? throw new ArgumentNullException(nameof(value));
 		}
 
 		/// <summary>
