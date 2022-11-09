@@ -60,6 +60,42 @@ namespace UtilTests
 		}
 
 		[Fact]
+		public void TestObjectsAreEqualOrCollapsed()
+		{
+			Assert.Equal(Visibility.Collapsed, CommonConverters.ObjectsAreEqualOrCollapsed.Convert(0, typeof(object), 5, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Visible, CommonConverters.ObjectsAreEqualOrCollapsed.Convert(0, typeof(object), 0, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Collapsed, CommonConverters.ObjectsAreEqualOrCollapsed.Convert("Hi!", typeof(object), "Bye!", CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Visible, CommonConverters.ObjectsAreEqualOrCollapsed.Convert("One", typeof(object), "One", CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
+		public void TestObjectsAreEqualOrHiden()
+		{
+			Assert.Equal(Visibility.Hidden, CommonConverters.ObjectsAreEqualOrHidden.Convert(0, typeof(object), 5, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Visible, CommonConverters.ObjectsAreEqualOrHidden.Convert(0, typeof(object), 0, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Hidden, CommonConverters.ObjectsAreEqualOrHidden.Convert("Hi!", typeof(object), "Bye!", CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Visible, CommonConverters.ObjectsAreEqualOrHidden.Convert("One", typeof(object), "One", CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
+		public void TestObjectsAreNotEqualOrCollapsed()
+		{
+			Assert.Equal(Visibility.Visible, CommonConverters.ObjectsAreNotEqualOrCollapsed.Convert(0, typeof(object), 5, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Collapsed, CommonConverters.ObjectsAreNotEqualOrCollapsed.Convert(0, typeof(object), 0, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Visible, CommonConverters.ObjectsAreNotEqualOrCollapsed.Convert("Hi!", typeof(object), "Bye!", CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Collapsed, CommonConverters.ObjectsAreNotEqualOrCollapsed.Convert("One", typeof(object), "One", CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
+		public void TestObjectsAreNotEqualOrHidden()
+		{
+			Assert.Equal(Visibility.Visible, CommonConverters.ObjectsAreNotEqualOrHidden.Convert(0, typeof(object), 5, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Hidden, CommonConverters.ObjectsAreNotEqualOrHidden.Convert(0, typeof(object), 0, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Visible, CommonConverters.ObjectsAreNotEqualOrHidden.Convert("Hi!", typeof(object), "Bye!", CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Hidden, CommonConverters.ObjectsAreNotEqualOrHidden.Convert("One", typeof(object), "One", CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
 		public void TestNullToCollapsed()
 		{
 			Assert.Equal(Visibility.Collapsed, CommonConverters.NullToVisibilityCollapsed.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
@@ -82,11 +118,48 @@ namespace UtilTests
 		}
 
 		[Fact]
+		public void TestNonEmptyEnumerableToVisibilityCollapsed()
+		{
+			Assert.Equal(Visibility.Visible, CommonConverters.NonEmptyEnumerableToVisibilityCollapsed.Convert(Array.Empty<object>(), typeof(object), null, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Visible, CommonConverters.NonEmptyEnumerableToVisibilityCollapsed.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Collapsed, CommonConverters.NonEmptyEnumerableToVisibilityCollapsed.Convert(new object[] { "Hi!" }, typeof(object), null, CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
+		public void TestNonEmptyEnumerableToVisibilityHidden()
+		{
+			Assert.Equal(Visibility.Visible, CommonConverters.NonEmptyEnumerableToVisibilityHidden.Convert(Array.Empty<object>(), typeof(object), null, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Visible, CommonConverters.NonEmptyEnumerableToVisibilityHidden.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+			Assert.Equal(Visibility.Hidden, CommonConverters.NonEmptyEnumerableToVisibilityHidden.Convert(new object[] { "Hi!" }, typeof(object), null, CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
 		public void TestNullEmptyEnumerableToVisibilityHidden()
 		{
 			Assert.Equal(Visibility.Hidden, CommonConverters.NullEmptyEnumerableToVisibilityHidden.Convert(Array.Empty<object>(), typeof(object), null, CultureInfo.CurrentCulture));
 			Assert.Equal(Visibility.Hidden, CommonConverters.NullEmptyEnumerableToVisibilityHidden.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
 			Assert.Equal(Visibility.Visible, CommonConverters.NullEmptyEnumerableToVisibilityHidden.Convert(new object[] { "Hi!" }, typeof(object), null, CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
+		public void TestMultiplyDoubleByNegativeOne()
+		{
+			Assert.Equal(10.0, CommonConverters.MultiplyDoubleByNegativeOne.Convert(-10.0, typeof(double), null, CultureInfo.CurrentCulture));
+			Assert.Equal(-10.0, CommonConverters.MultiplyDoubleByNegativeOne.Convert(10.0, typeof(double), null, CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
+		public void TestNullToFalse()
+		{
+			Assert.Equal(true, CommonConverters.NullToFalse.Convert("A", typeof(string), null, CultureInfo.CurrentCulture));
+			Assert.Equal(false, CommonConverters.NullToFalse.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
+		}
+
+		[Fact]
+		public void TestNullToTrue()
+		{
+			Assert.Equal(false, CommonConverters.NullToTrue.Convert("A", typeof(string), null, CultureInfo.CurrentCulture));
+			Assert.Equal(true, CommonConverters.NullToTrue.Convert(null, typeof(object), null, CultureInfo.CurrentCulture));
 		}
 
 		[Fact]
