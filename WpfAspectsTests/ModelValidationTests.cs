@@ -32,27 +32,18 @@ public class ModelValidationTests
 			public TestValidator(TestModel model)
 				: base(model)
 			{
-				foreach (var rule in GetRules())
+				foreach (var rule in Rules)
 				{
 					AddRule(rule);
 				}
 			}
 
-			private static IEnumerable<Rule<TestModel>> s_rules;
-			private static IEnumerable<Rule<TestModel>> GetRules()
+			private static IEnumerable<Rule<TestModel>> Rules { get; } = new Rule<TestModel>[]
 			{
-				if (s_rules is null)
-				{
-					s_rules = new Rule<TestModel>[]
-					{
-						new CustomRule<TestModel>(nameof(PropertyOne), x => !string.IsNullOrEmpty(x.PropertyOne))
-							.AlsoCheckOn(nameof(TestModel.PropertyTwo))
-							.WithOnFailMessage("Property One must have a value."),
-					};
-				}
-
-				return s_rules;
-			}
+				new CustomRule<TestModel>(nameof(PropertyOne), x => !string.IsNullOrEmpty(x.PropertyOne))
+					.AlsoCheckOn(nameof(TestModel.PropertyTwo))
+					.WithOnFailMessage("Property One must have a value."),
+			};
 		}
 
 		private string m_propertyOne;

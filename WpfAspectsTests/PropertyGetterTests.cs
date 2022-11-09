@@ -18,7 +18,7 @@ namespace UtilTests
 			private int VarFour { get; set; } = 3;
 		}
 
-		///Test default PropertyGetter.GetProperties behavior; should only return the VarOne property.
+		// Test default PropertyGetter.GetProperties behavior; should only return the VarOne property.
 		[Fact]
 		public void TestDefaultBindingFlags()
 		{
@@ -29,7 +29,7 @@ namespace UtilTests
 			Assert.Equal("VarOne", properties.First().Name);
 		}
 
-		///Test more advanced PropertyGetter.GetProperties behavior; should just return the StaticVarOne property.
+		// Test more advanced PropertyGetter.GetProperties behavior; should just return the StaticVarOne property.
 		[Fact]
 		public void TestAdvancedBindingFlags()
 		{
