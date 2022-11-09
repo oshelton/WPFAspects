@@ -41,11 +41,11 @@ public static class CommonConverters
 		new GenericConverter<object, object>((value, param) => value.Equals(param) ? Visibility.Visible : Visibility.Hidden);
 
 	// Returns Visible if the passed in objects are not equal or Collapsed.
-	public static GenericConverter<object, object> ObjectsAreNotEqualOrCollapsed { get; } =
+	public static GenericConverter<object, object> ObjectsNotEqualOrCollapsed { get; } =
 		new GenericConverter<object, object>((value, param) => !value.Equals(param) ? Visibility.Visible : Visibility.Collapsed);
 
 	// Returns Visible if the passed in objects are not equal or Hidden.
-	public static GenericConverter<object, object> ObjectsAreNotEqualOrHidden { get; } =
+	public static GenericConverter<object, object> ObjectsNotEqualOrHidden { get; } =
 		new GenericConverter<object, object>((value, param) => !value.Equals(param) ? Visibility.Visible : Visibility.Hidden);
 
 	// Returns visibility collapsed if the input value is equal to null.
