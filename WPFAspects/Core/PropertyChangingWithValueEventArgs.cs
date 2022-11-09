@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WPFAspects.Core;
 
@@ -21,5 +16,5 @@ public sealed class PropertyChangingWithValueEventArgs : PropertyChangingEventAr
 	/// <summary>
 	/// Previous (current) value of the property.
 	/// </summary>
-	public object PreviousValue { get; init; }
+	public object PreviousValue { get; }
 }
