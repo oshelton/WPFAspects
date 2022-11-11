@@ -1,11 +1,13 @@
-using System.Collections.Generic;
 using WPFAspects.Core;
 using WPFAspects.Validation;
 using WPFAspects.Validation.Rules;
 using Xunit;
 
-namespace UtilTests;
+namespace WpfAspects.Tests;
 
+/// <summary>
+/// Test ModelValidation behavior.
+/// </summary>
 public class ModelValidationTests
 {
 	private class TestModel : ValidatedModel
@@ -41,7 +43,7 @@ public class ModelValidationTests
 			private static IEnumerable<Rule<TestModel>> Rules { get; } = new Rule<TestModel>[]
 			{
 				new CustomRule<TestModel>(nameof(PropertyOne), x => !string.IsNullOrEmpty(x.PropertyOne))
-					.AlsoCheckOn(nameof(TestModel.PropertyTwo))
+					.AlsoCheckOn(nameof(PropertyTwo))
 					.WithOnFailMessage("Property One must have a value."),
 			};
 		}
@@ -107,33 +109,33 @@ public class ModelValidationTests
 	{
 		var testModel = new TestModel();
 
-		bool receivedErrorNotification = false;
+		var receivedErrorNotification = false;
 		testModel.ErrorsChanged += (sender, args) =>
 		{
 			Assert.Equal(nameof(TestModel.PropertyOne), args.PropertyName);
 			receivedErrorNotification = true;
 		};
 
-		bool receivedValidationFailed = false;
+		var receivedValidationFailed = false;
 		testModel.Validator.ValidationFail += (sender, args) =>
 		{
 			receivedValidationFailed = true;
 		};
 
-		bool receivedPropertyValidationFailed = false;
+		var receivedPropertyValidationFailed = false;
 		testModel.Validator.PropertyValidationFail += (sender, args) =>
 		{
 			Assert.Equal(nameof(TestModel.PropertyOne), args.PropertyName);
 			receivedPropertyValidationFailed = true;
 		};
 
-		bool receivedValidationSuccess = false;
+		var receivedValidationSuccess = false;
 		testModel.Validator.ValidationSuccess += (sender, args) =>
 		{
 			receivedValidationSuccess = true;
 		};
 
-		bool receivedPropertyValidationSuccess = false;
+		var receivedPropertyValidationSuccess = false;
 		testModel.Validator.PropertyValidationSuccess += (sender, args) =>
 		{
 			Assert.Equal(nameof(TestModel.PropertyOne), args.PropertyName);

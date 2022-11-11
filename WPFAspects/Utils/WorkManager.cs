@@ -72,7 +72,11 @@ public static class WorkManager
 
 		await Task.Run(work).ConfigureAwait(false);
 
-		Dispatcher.CurrentDispatcher.Invoke(() => IsApplicationBlockingWorkInProgress = false);
+		Dispatcher.CurrentDispatcher.Invoke(() =>
+		{
+			IsApplicationBlockingWorkInProgress = false;
+			ApplicationBlockingWorkTitle = null;
+		});
 	}
 
 	/// <summary>
@@ -93,7 +97,11 @@ public static class WorkManager
 
 		await work().ConfigureAwait(false);
 
-		Dispatcher.CurrentDispatcher.Invoke(() => IsApplicationBlockingWorkInProgress = false);
+		Dispatcher.CurrentDispatcher.Invoke(() =>
+		{
+			IsApplicationBlockingWorkInProgress = false;
+			ApplicationBlockingWorkTitle = null;
+		});
 	}
 
 	public static event EventHandler IsApplicationBlockingWorkInProgressChanged;
