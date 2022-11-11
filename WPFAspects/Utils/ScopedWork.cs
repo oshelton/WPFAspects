@@ -21,10 +21,7 @@ public sealed class ScopedWork : IDisposable
 		m_workDoneAction = workDoneAction;
 	}
 
-	public void Dispose()
-	{
-		m_workDoneAction?.Invoke();
-	}
+	public void Dispose() => m_workDoneAction?.Invoke();
 
 	private readonly Action m_workDoneAction;
 }

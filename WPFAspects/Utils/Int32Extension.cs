@@ -7,10 +7,7 @@ namespace WPFAspects.Utils;
 /// </summary>
 public class Int32Extension : MarkupExtension
 {
-	public Int32Extension(int value)
-	{
-		Value = value;
-	}
+	public Int32Extension(int value) => Value = value;
 
 	public int Value { get; set; }
 	public override object ProvideValue(IServiceProvider serviceProvider) => Value;

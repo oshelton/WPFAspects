@@ -85,6 +85,12 @@ public class DirtyTracker : Model, IDisposable
 		return m_initialValues.TryGetValue(propertyName, out object initial) ? initial : null;
 	}
 
+	/// <summary>
+	/// Create a new dirty tracking sub group.
+	/// </summary>
+	/// <param name="groupName">Name of the group.</param>
+	/// <param name="propertiesForGroup">Properties to include in the group.</param>
+	/// <returns>The tracking group.</returns>
 	public DirtyTrackingGroup CreateDirtyTrackingGroup(string groupName, params string[] propertiesForGroup)
 	{
 		var newGroup = new DirtyTrackingGroup(groupName, propertiesForGroup);
@@ -94,6 +100,35 @@ public class DirtyTracker : Model, IDisposable
 			newGroup.IsDirty = true;
 
 		return newGroup;
+	}
+
+	/// <summary>
+	/// The object whose dirty state is to be tracked.
+	/// </summary>
+	public Model TrackedObject { get; }
+
+	/// <summary>
+	/// Get/Set the properties changes to should be ignored.
+	/// </summary>
+	/// <remarks>Defaults to Model.DefaultTrackedProperties.</remarks>
+	public HashSet<string> TrackedProperties
+	{
+		get => m_trackedProperties;
+		set
+		{
+			if (IsDirty)
+				throw new InvalidOperationException("Tracked properties cannot be updated when a DirtyDracker is dirty.");
+			m_trackedProperties = value ?? throw new ArgumentNullException(nameof(value));
+		}
+	}
+
+	/// <summary>
+	/// Get whether or not the tracked object is dirty (has changes).
+	/// </summary>
+	public bool IsDirty
+	{
+		get => CheckIsOnMainThread(m_isDirty);
+		private set => SetPropertyBackingValue(value, ref m_isDirty);
 	}
 
 	/// <summary>
@@ -151,32 +186,6 @@ public class DirtyTracker : Model, IDisposable
 			else
 				IsDirty = false;
 		}
-	}
-
-	public Model TrackedObject { get; }
-
-	/// <summary>
-	/// Get/Set the properties changes to should be ignored.
-	/// </summary>
-	/// <remarks>Defaults to Model.DefaultTrackedProperties.</remarks>
-	public HashSet<string> TrackedProperties
-	{
-		get => m_trackedProperties;
-		set
-		{
-			if (IsDirty)
-				throw new InvalidOperationException("Tracked properties cannot be updated when a DirtyDracker is dirty.");
-			m_trackedProperties = value ?? throw new ArgumentNullException(nameof(value));
-		}
-	}
-
-	/// <summary>
-	/// Get whether or not the tracked object is dirty (has changes).
-	/// </summary>
-	public bool IsDirty
-	{
-		get => CheckIsOnMainThread(m_isDirty);
-		private set => SetPropertyBackingValue(value, ref m_isDirty);
 	}
 
 	/// <summary>

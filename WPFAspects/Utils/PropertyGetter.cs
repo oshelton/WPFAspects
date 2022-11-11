@@ -15,19 +15,25 @@ namespace WPFAspects.Utils
 	/// </remarks>
 	public static class PropertyGetter
 	{
-		// Get all properties of an object matching the passed in binding flags.
+		/// <summary>
+		/// Get all properties of an object matching the passed in binding flags.
+		/// </summary>
 		public static IEnumerable<PropertyInfo> GetProperties(this object obj, BindingFlags flags = BindingFlags.Public | BindingFlags.Instance)
 		{
 			return obj.GetType().GetProperties(flags);
 		}
 
-		// Get the value of a specific property of an object.
+		/// <summary>
+		/// Get the value of a specific property of an object.
+		/// </summary>s>
 		public static T GetPropertyValue<T>(this object obj, string propertyName, BindingFlags flags = BindingFlags.Public | BindingFlags.Instance)
 		{
 			return (T) obj.GetType().GetProperty(propertyName, flags).GetValue(obj);
 		}
 
-		// Set the value of a specific property of an object.
+		/// <summary>
+		/// Set the value of a specific property of an object.
+		/// </summary>
 		public static void SetPropertyValue<T>(this object obj, string propertyName, T value, BindingFlags flags = BindingFlags.Public | BindingFlags.Instance)
 		{
 			obj.GetType().GetProperty(propertyName, flags).SetValue(obj, value);

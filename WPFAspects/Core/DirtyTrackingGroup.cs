@@ -1,5 +1,8 @@
 namespace WPFAspects.Core;
 
+/// <summary>
+/// Represents a tracking of a subset of properties on an object.
+/// </summary>
 public class DirtyTrackingGroup : Model
 {
 	internal DirtyTrackingGroup(string name, params string[] propertyNames)

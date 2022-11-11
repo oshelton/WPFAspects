@@ -17,10 +17,7 @@ public class EventBindingExtension : MarkupExtension
 	{
 	}
 
-	public EventBindingExtension(string eventHandlerName)
-	{
-		EventHandlerName = eventHandlerName;
-	}
+	public EventBindingExtension(string eventHandlerName) => EventHandlerName = eventHandlerName;
 
 	public EventBindingExtension(string eventHandlerName, DependencyObject source)
 	{
@@ -28,9 +25,15 @@ public class EventBindingExtension : MarkupExtension
 		Source = source;
 	}
 
+	/// <summary>
+	/// Name of themethod.
+	/// </summary>
 	[ConstructorArgument("eventHandlerName")]
 	public string EventHandlerName { get; set; }
 
+	/// <summary>
+	/// Source object that provides the method.
+	/// </summary>
 	[ConstructorArgument("Source")]
 	public DependencyObject Source { get; set; }
 
