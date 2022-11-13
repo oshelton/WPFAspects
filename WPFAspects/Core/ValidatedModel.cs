@@ -44,7 +44,7 @@ public abstract class ValidatedModel : Model, INotifyDataErrorInfo
 	/// </summary>
 	internal void InvokeErrorsChanged(string propertyName = null)
 	{
-		OnPropertyChanged(nameof(HasErrors));
+		OnPropertyChanged(HasErrors, nameof(HasErrors));
 		ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
 	}
 }
