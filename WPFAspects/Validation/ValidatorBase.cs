@@ -50,6 +50,9 @@ namespace WPFAspects.Validation
 				return new List<string>();
 		}
 
+		// Get validation error messagesfor all properties.
+		public IReadOnlyList<string> GetErrors() => ValidationErrorMessages.SelectMany(x => x.Value.Select(error => $"{x.Key} - {error}")).ToList();
+
 		// Handle actual validation as properties change on the validated object.
 		public void OnValidatedObjectPropertyChanged(string propertyName)
 		{

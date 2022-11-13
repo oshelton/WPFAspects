@@ -24,9 +24,9 @@ public abstract class ValidatedModel : Model, INotifyDataErrorInfo
 	public IReadOnlyList<string> GetErrorsList(string propertyName)
 	{
 		if (string.IsNullOrWhiteSpace(propertyName))
-			throw new ArgumentNullException(propertyName);
-
-		return Validator?.GetErrorsForProperty(propertyName) ?? new List<string>();
+			return Validator.GetErrors();
+		else
+			return Validator?.GetErrorsForProperty(propertyName) ?? new List<string>();
 	}
 
 	/// <summary>
